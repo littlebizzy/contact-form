@@ -74,9 +74,18 @@ function store_contact_form_display() {
             <input type="email" readonly value="<?php echo esc_attr( $user->user_email ); ?>">
         </p>
 
+        <?php
+        $billing_phone = ( class_exists( 'WooCommerce' ) )
+            ? get_user_meta( $user_id, 'billing_phone', true )
+            : '';
+
+        $phone_value = ! empty( $billing_phone )
+            ? $billing_phone
+            : __( 'Not Available', 'store-contact-form' );
+        ?>
         <p>
             <label><?php _e( 'Phone', 'store-contact-form' ); ?></label>
-            <input type="text" readonly value="<?php echo esc_attr( $billing_phone ); ?>">
+            <input type="text" readonly value="<?php echo esc_attr( $phone_value ); ?>">
         </p>
 
         <p>
@@ -91,7 +100,7 @@ function store_contact_form_display() {
 
         <p>
             <label><?php _e( 'Message', 'store-contact-form' ); ?></label>
-            <textarea name="contact_message"></textarea>
+            <textarea name="contact_message" rows="10" cols="40"></textarea>
         </p>
 
         <?php if ( ! empty( $orders ) || ! empty( $subscriptions ) ) : ?>
