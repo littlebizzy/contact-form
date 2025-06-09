@@ -57,65 +57,79 @@ function store_contact_form_display() {
 
 	// build form
 	ob_start(); ?>
-	<form id="store-contact-form">
-		<label><?php _e( 'Name', 'store-contact-form' ); ?></label>
-		<?php
-		$first_name = get_user_meta( $user_id, 'first_name', true );
-		$last_name  = get_user_meta( $user_id, 'last_name', true );
-		$full_name  = trim( $first_name . ' ' . $last_name );
-		$name_value = ! empty( $full_name ) ? $full_name : $user->display_name;
-		?>
-		<input type="text" readonly value="<?php echo esc_attr( $name_value ); ?>"><br>
+    <form id="store-contact-form">
+        <p>
+            <label><?php _e( 'Name', 'store-contact-form' ); ?></label>
+            <?php
+            $first_name = get_user_meta( $user_id, 'first_name', true );
+            $last_name  = get_user_meta( $user_id, 'last_name', true );
+            $full_name  = trim( $first_name . ' ' . $last_name );
+            $name_value = ! empty( $full_name ) ? $full_name : $user->display_name;
+            ?>
+            <input type="text" readonly value="<?php echo esc_attr( $name_value ); ?>">
+        </p>
 
-		<label><?php _e( 'Email', 'store-contact-form' ); ?></label>
-		<input type="email" readonly value="<?php echo esc_attr( $user->user_email ); ?>"><br>
+        <p>
+            <label><?php _e( 'Email', 'store-contact-form' ); ?></label>
+            <input type="email" readonly value="<?php echo esc_attr( $user->user_email ); ?>">
+        </p>
 
-		<label><?php _e( 'Phone', 'store-contact-form' ); ?></label>
-		<input type="text" readonly value="<?php echo esc_attr( $billing_phone ); ?>"><br>
+        <p>
+            <label><?php _e( 'Phone', 'store-contact-form' ); ?></label>
+            <input type="text" readonly value="<?php echo esc_attr( $billing_phone ); ?>">
+        </p>
 
-		<label><?php _e( 'URL', 'store-contact-form' ); ?></label>
-		<input type="url" name="contact_url"><br>
+        <p>
+            <label><?php _e( 'URL', 'store-contact-form' ); ?></label>
+            <input type="url" name="contact_url">
+        </p>
 
-		<label><?php _e( 'Subject', 'store-contact-form' ); ?></label>
-		<input type="text" name="contact_subject"><br>
+        <p>
+            <label><?php _e( 'Subject', 'store-contact-form' ); ?></label>
+            <input type="text" name="contact_subject">
+        </p>
 
-		<label><?php _e( 'Message', 'store-contact-form' ); ?></label>
-		<textarea name="contact_message"></textarea><br>
+        <p>
+            <label><?php _e( 'Message', 'store-contact-form' ); ?></label>
+            <textarea name="contact_message"></textarea>
+        </p>
 
-		<?php if ( ! empty( $orders ) || ! empty( $subscriptions ) ) : ?>
-			<label><?php _e( 'Order or subscription', 'store-contact-form' ); ?></label>
-			<select name="contact_reference">
-				<option value=""><?php _e( 'Select', 'store-contact-form' ); ?></option>
-				<?php foreach ( $orders as $order ) : ?>
-					<option value="order_<?php echo esc_attr( $order->get_id() ); ?>">
-						<?php
-						echo sprintf(
-							__( 'Order #%1$s – %2$s', 'store-contact-form' ),
-							esc_html( $order->get_id() ),
-							esc_html( $order->get_date_created()->date( 'Y-m-d' ) )
-						);
-						?>
-					</option>
-				<?php endforeach; ?>
-				<?php foreach ( $subscriptions as $subscription ) : ?>
-					<option value="subscription_<?php echo esc_attr( $subscription->get_id() ); ?>">
-						<?php
-						echo sprintf(
-							__( 'Subscription #%1$s – %2$s', 'store-contact-form' ),
-							esc_html( $subscription->get_id() ),
-							esc_html( $subscription->get_date_created()->date( 'Y-m-d' ) )
-						);
-						?>
-					</option>
-				<?php endforeach; ?>
-			</select><br>
-		<?php endif; ?>
+        <?php if ( ! empty( $orders ) || ! empty( $subscriptions ) ) : ?>
+            <p>
+                <label><?php _e( 'Order or subscription', 'store-contact-form' ); ?></label>
+                <select name="contact_reference">
+                    <option value=""><?php _e( 'Select', 'store-contact-form' ); ?></option>
+                    <?php foreach ( $orders as $order ) : ?>
+                        <option value="order_<?php echo esc_attr( $order->get_id() ); ?>">
+                            <?php
+                            echo sprintf(
+                                __( 'Order #%1$s – %2$s', 'store-contact-form' ),
+                                esc_html( $order->get_id() ),
+                                esc_html( $order->get_date_created()->date( 'Y-m-d' ) )
+                            );
+                            ?>
+                        </option>
+                    <?php endforeach; ?>
+                    <?php foreach ( $subscriptions as $subscription ) : ?>
+                        <option value="subscription_<?php echo esc_attr( $subscription->get_id() ); ?>">
+                            <?php
+                            echo sprintf(
+                                __( 'Subscription #%1$s – %2$s', 'store-contact-form' ),
+                                esc_html( $subscription->get_id() ),
+                                esc_html( $subscription->get_date_created()->date( 'Y-m-d' ) )
+                            );
+                            ?>
+                        </option>
+                    <?php endforeach; ?>
+                </select>
+            </p>
+        <?php endif; ?>
 
-		<input type="hidden" name="action" value="store_contact_form_submit">
-		<?php wp_nonce_field( 'store_contact_form_nonce', 'nonce' ); ?>
-		<input type="submit" value="<?php esc_attr_e( 'Send', 'store-contact-form' ); ?>">
-		<div id="store-contact-response"></div>
-	</form>
+        <input type="hidden" name="action" value="store_contact_form_submit">
+        <?php wp_nonce_field( 'store_contact_form_nonce', 'nonce' ); ?>
+        <p><input type="submit" value="<?php esc_attr_e( 'Send', 'store-contact-form' ); ?>"></p>
+        <div id="store-contact-response"></div>
+    </form>
 	<?php
 	// return form output
 	return ob_get_clean();
