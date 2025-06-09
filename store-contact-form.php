@@ -66,12 +66,12 @@ function store_contact_form_display() {
             $full_name  = trim( $first_name . ' ' . $last_name );
             $name_value = ! empty( $full_name ) ? $full_name : $user->display_name;
             ?>
-            <input type="text" readonly value="<?php echo esc_attr( $name_value ); ?>">
+            <input type="text" readonly value="<?php echo esc_attr( $name_value ); ?>" style="background-color: #f5f5f5;">
         </p>
 
         <p>
             <label><?php _e( 'Email', 'store-contact-form' ); ?></label>
-            <input type="email" readonly value="<?php echo esc_attr( $user->user_email ); ?>">
+            <input type="email" readonly value="<?php echo esc_attr( $user->user_email ); ?>" style="background-color: #f5f5f5;">
         </p>
 
         <?php
@@ -85,7 +85,7 @@ function store_contact_form_display() {
         ?>
         <p>
             <label><?php _e( 'Phone', 'store-contact-form' ); ?></label>
-            <input type="text" readonly value="<?php echo esc_attr( $phone_value ); ?>">
+            <input type="text" readonly value="<?php echo esc_attr( $phone_value ); ?>" style="background-color: #f5f5f5;">
         </p>
 
         <p>
