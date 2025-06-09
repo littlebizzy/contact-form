@@ -2,7 +2,7 @@
 /*
 Plugin Name: Store Contact Form
 Plugin URI: https://www.littlebizzy.com/plugins/store-contact-form
-Description: Simple contact form with WooCommerce order and subscription support
+Description: Easy contact form for WooCommerce
 Version: 1.0.0
 Author: LittleBizzy
 Author URI: https://www.littlebizzy.com
@@ -32,7 +32,7 @@ add_shortcode( 'store_contact_form', 'store_contact_form_display' );
 function store_contact_form_display() {
 	// only show form to logged-in users
 	if ( ! is_user_logged_in() ) {
-		return '<p>you must be logged in to contact us.</p>';
+		return '<p>' . esc_html__( 'You must be logged in to contact us.', 'store-contact-form' ) . '</p>';
 	}
 
 	// get user data
@@ -40,7 +40,7 @@ function store_contact_form_display() {
 	$user          = wp_get_current_user();
 	$billing_phone = get_user_meta( $user_id, 'billing_phone', true );
 
-	// fetch recent orders if woocommerce is active
+	// fetch recent orders if WooCommerce is active
 	$orders = class_exists( 'WooCommerce' ) ? wc_get_orders( [
 		'customer_id' => $user_id,
 		'limit'       => 10,
@@ -48,7 +48,7 @@ function store_contact_form_display() {
 		'order'       => 'DESC',
 	] ) : [];
 
-	// fetch subscriptions if wc subscriptions plugin is active
+	// fetch subscriptions if WC Subscriptions is active
 	$subscriptions = ( function_exists( 'wcs_get_subscriptions_for_user' ) && class_exists( 'WC_Subscriptions' ) )
 		? wcs_get_subscriptions_for_user( $user_id, [ 'order_type' => 'any' ] )
 		: [];
@@ -56,36 +56,50 @@ function store_contact_form_display() {
 	// output form
 	ob_start(); ?>
 	<form id="store-contact-form">
-		<label>name</label>
+		<label><?php esc_html_e( 'name', 'store-contact-form' ); ?></label>
 		<input type="text" readonly value="<?php echo esc_attr( $user->display_name ); ?>"><br>
 
-		<label>email</label>
+		<label><?php esc_html_e( 'email', 'store-contact-form' ); ?></label>
 		<input type="email" readonly value="<?php echo esc_attr( $user->user_email ); ?>"><br>
 
-		<label>phone</label>
+		<label><?php esc_html_e( 'phone', 'store-contact-form' ); ?></label>
 		<input type="text" readonly value="<?php echo esc_attr( $billing_phone ); ?>"><br>
 
-		<label>url</label>
+		<label><?php esc_html_e( 'url', 'store-contact-form' ); ?></label>
 		<input type="url" name="contact_url"><br>
 
-		<label>subject</label>
+		<label><?php esc_html_e( 'subject', 'store-contact-form' ); ?></label>
 		<input type="text" name="contact_subject"><br>
 
-		<label>message</label>
+		<label><?php esc_html_e( 'message', 'store-contact-form' ); ?></label>
 		<textarea name="contact_message"></textarea><br>
 
 		<?php if ( ! empty( $orders ) || ! empty( $subscriptions ) ) : ?>
-			<label>order or subscription</label>
+			<label><?php esc_html_e( 'order or subscription', 'store-contact-form' ); ?></label>
 			<select name="contact_reference">
-				<option value="">select</option>
+				<option value=""><?php esc_html_e( 'select', 'store-contact-form' ); ?></option>
 				<?php foreach ( $orders as $order ) : ?>
 					<option value="order_<?php echo esc_attr( $order->get_id() ); ?>">
-						Order #<?php echo esc_html( $order->get_id() ); ?> - <?php echo esc_html( $order->get_date_created()->date( 'Y-m-d' ) ); ?>
+						<?php
+						printf(
+							/* translators: 1: order ID, 2: date */
+							esc_html__( 'Order #%1$s - %2$s', 'store-contact-form' ),
+							esc_html( $order->get_id() ),
+							esc_html( $order->get_date_created()->date( 'Y-m-d' ) )
+						);
+						?>
 					</option>
 				<?php endforeach; ?>
 				<?php foreach ( $subscriptions as $subscription ) : ?>
 					<option value="subscription_<?php echo esc_attr( $subscription->get_id() ); ?>">
-						Subscription #<?php echo esc_html( $subscription->get_id() ); ?> - <?php echo esc_html( $subscription->get_date_created()->date( 'Y-m-d' ) ); ?>
+						<?php
+						printf(
+							/* translators: 1: subscription ID, 2: date */
+							esc_html__( 'Subscription #%1$s - %2$s', 'store-contact-form' ),
+							esc_html( $subscription->get_id() ),
+							esc_html( $subscription->get_date_created()->date( 'Y-m-d' ) )
+						);
+						?>
 					</option>
 				<?php endforeach; ?>
 			</select><br>
@@ -93,7 +107,7 @@ function store_contact_form_display() {
 
 		<input type="hidden" name="action" value="store_contact_form_submit">
 		<?php wp_nonce_field( 'store_contact_form_nonce', 'nonce' ); ?>
-		<input type="submit" value="Send">
+		<input type="submit" value="<?php esc_attr_e( 'Send', 'store-contact-form' ); ?>">
 		<div id="store-contact-response"></div>
 	</form>
 	<?php
