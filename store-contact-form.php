@@ -175,41 +175,52 @@ function store_contact_form_enqueue_js() {
 	}
 }
 
-// handle ajax form submission
 add_action( 'wp_ajax_store_contact_form_submit', 'store_contact_form_submit' );
 function store_contact_form_submit() {
 	// verify nonce
 	check_ajax_referer( 'store_contact_form_nonce', 'nonce' );
 
-	// ensure user is logged in
-	$user = wp_get_current_user();
-	if ( ! $user->exists() ) {
-		wp_send_json_error( __( 'Not logged in', 'store-contact-form' ) );
-	}
+    // ensure user is logged in
+    $user = wp_get_current_user();
+    if ( ! $user->exists() ) {
+        wp_send_json_error( __( 'Not logged in', 'store-contact-form' ) );
+    }
 
-	// sanitize input fields
-	$subject      = sanitize_text_field( isset( $_POST['contact_subject'] ) ? $_POST['contact_subject'] : '' );
-	$url          = esc_url_raw( isset( $_POST['contact_url'] ) ? $_POST['contact_url'] : '' );
-	$message_body = sanitize_textarea_field( isset( $_POST['contact_message'] ) ? $_POST['contact_message'] : '' );
-	$reference    = sanitize_text_field( isset( $_POST['contact_reference'] ) ? $_POST['contact_reference'] : '' );
+    // collect server-controlled values
+    $user_id    = $user->ID;
+    $first_name = get_user_meta( $user_id, 'first_name', true );
+    $last_name  = get_user_meta( $user_id, 'last_name', true );
+    $full_name  = trim( $first_name . ' ' . $last_name );
+    $name       = ! empty( $full_name ) ? $full_name : $user->display_name;
+    $email      = sanitize_email( $user->user_email );
+    $phone      = get_user_meta( $user_id, 'billing_phone', true );
+    $phone      = ! empty( $phone ) ? sanitize_text_field( $phone ) : __( 'Not Available', 'store-contact-form' );
+
+	// strict field whitelist for user-submitted data
+	$subject   = sanitize_text_field( $_POST['contact_subject'] ?? '' );
+	$url       = esc_url_raw( $_POST['contact_url'] ?? '' );
+	$message   = sanitize_textarea_field( $_POST['contact_message'] ?? '' );
+	$reference = sanitize_text_field( $_POST['contact_reference'] ?? '' );
 
 	// validate required fields
-	if ( empty( $subject ) || empty( $message_body ) ) {
+	if ( empty( $subject ) || empty( $message ) ) {
 		wp_send_json_error( __( 'Subject and message are required', 'store-contact-form' ) );
 	}
 
 	// build message
-	$message  = "Subject: {$subject}\n";
-	$message .= "URL: {$url}\n";
-	$message .= "Message: {$message_body}\n";
-	$message .= "Reference: {$reference}\n";
-	$message .= "User: {$user->display_name} ({$user->user_email})\n";
+	$email_body  = "Name: {$name}\n";
+	$email_body .= "Email: {$email}\n";
+	$email_body .= "Phone: {$phone}\n";
+	$email_body .= "URL: {$url}\n";
+	$email_body .= "Subject: {$subject}\n";
+	$email_body .= "Message: {$message}\n";
+	$email_body .= "Reference: {$reference}\n";
 
 	// send email
 	$sent = wp_mail(
 		get_option( 'admin_email' ),
 		__( 'Store Contact Form Submission', 'store-contact-form' ),
-		$message
+		$email_body
 	);
 
 	// return json result
