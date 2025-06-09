@@ -59,7 +59,13 @@ function store_contact_form_display() {
 	ob_start(); ?>
 	<form id="store-contact-form">
 		<label><?php _e( 'Name', 'store-contact-form' ); ?></label>
-		<input type="text" readonly value="<?php echo esc_attr( $user->display_name ); ?>"><br>
+		<?php
+		$first_name = get_user_meta( $user_id, 'first_name', true );
+		$last_name  = get_user_meta( $user_id, 'last_name', true );
+		$full_name  = trim( $first_name . ' ' . $last_name );
+		$name_value = ! empty( $full_name ) ? $full_name : $user->display_name;
+		?>
+		<input type="text" readonly value="<?php echo esc_attr( $name_value ); ?>"><br>
 
 		<label><?php _e( 'Email', 'store-contact-form' ); ?></label>
 		<input type="email" readonly value="<?php echo esc_attr( $user->user_email ); ?>"><br>
