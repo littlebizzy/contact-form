@@ -131,14 +131,20 @@ function store_contact_form_display() {
 // enqueue js only if shortcode exists and user is logged-in
 add_action( 'wp_enqueue_scripts', 'store_contact_form_enqueue_js' );
 function store_contact_form_enqueue_js() {
+	// skip if user not logged in
 	if ( ! is_user_logged_in() ) {
 		return;
 	}
-	global $post;
-	if ( empty( $post ) || ! is_a( $post, 'WP_Post' ) ) {
+
+	// get current post object
+	$post = get_post();
+	if ( ! $post instanceof WP_Post ) {
 		return;
 	}
+
+	// check if contact form shortcode is present
 	if ( has_shortcode( $post->post_content, 'store_contact_form' ) ) {
+		// enqueue contact form js with cache-busting version
 		wp_enqueue_script(
 			'store-contact-form',
 			plugin_dir_url( __FILE__ ) . 'store-contact-form.js',
@@ -146,8 +152,11 @@ function store_contact_form_enqueue_js() {
 			filemtime( plugin_dir_path( __FILE__ ) . 'store-contact-form.js' ),
 			true
 		);
+
+		// pass ajax url and nonce to js
 		wp_localize_script( 'store-contact-form', 'storeContactForm', array(
 			'ajax_url' => admin_url( 'admin-ajax.php' ),
+			'nonce'    => wp_create_nonce( 'store_contact_form_nonce' ),
 		) );
 	}
 }
