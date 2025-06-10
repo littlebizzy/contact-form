@@ -1,5 +1,5 @@
 # Store Contact Form
 
-Easy contact form for WooCommerce
+Intuitive WordPress contact form
 
 ## Changelog
