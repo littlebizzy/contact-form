@@ -36,29 +36,33 @@ function store_contact_form_display() {
 	}
 
 	// get user data
-	$user    = wp_get_current_user();
+	$user = wp_get_current_user();
 	$user_id = $user->ID;
 	$first_name = get_user_meta( $user_id, 'first_name', true );
-	$last_name  = get_user_meta( $user_id, 'last_name', true );
-	$full_name  = trim( $first_name . ' ' . $last_name );
+	$last_name = get_user_meta( $user_id, 'last_name', true );
+	$full_name = trim( $first_name . ' ' . $last_name );
 	$name_value = ! empty( $full_name ) ? $full_name : $user->display_name;
 	$billing_phone = class_exists( 'WooCommerce' ) ? get_user_meta( $user_id, 'billing_phone', true ) : '';
-	$phone_value   = ! empty( $billing_phone ) ? $billing_phone : __( 'Not Available', 'store-contact-form' );
+	$phone_value = ! empty( $billing_phone ) ? $billing_phone : __( 'Not Available', 'store-contact-form' );
 
-	// fetch recent orders if woocommerce is active
-	$orders = class_exists( 'WooCommerce' )
-		? wc_get_orders( array(
-			'customer_id' => $user_id,
-			'limit' => 10,
-			'orderby' => 'date',
-			'order' => 'DESC',
-		) )
-		: array();
+    // fetch recent orders if woocommerce is active
+    $orders = class_exists( 'WooCommerce' )
+        ? wc_get_orders( array(
+            'customer_id' => $user_id,
+            'limit'       => 15,
+            'orderby'     => 'date',
+            'order'       => 'DESC',
+        ) )
+        : array();
 
-	// fetch subscriptions if subscriptions plugin is active
-	$subscriptions = ( function_exists( 'wcs_get_subscriptions_for_user' ) && class_exists( 'WC_Subscriptions' ) )
-		? wcs_get_subscriptions_for_user( $user_id, array( 'order_type' => 'any' ) )
-		: array();
+    // fetch subscriptions if subscriptions plugin is active
+    $subscriptions = (
+        function_exists( 'wcs_get_subscriptions_for_user' )
+        && class_exists( 'WC_Subscriptions' )
+    ) ? wcs_get_subscriptions_for_user( $user_id, array(
+            'order_type' => 'any',
+        ) )
+        : array();
 
 	ob_start(); ?>
 	<form id="store-contact-form">
