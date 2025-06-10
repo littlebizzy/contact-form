@@ -27,7 +27,7 @@ add_filter( 'gu_override_dot_org', function( $overrides ) {
 	return $overrides;
 }, 999 );
 
-// display contact form
+// display contact form shortcode
 add_shortcode( 'store_contact_form', 'store_contact_form_display' );
 function store_contact_form_display() {
 	// only show form to logged-in users
@@ -35,86 +35,72 @@ function store_contact_form_display() {
 		return '<p>' . esc_html__( 'You must be logged in to contact us.', 'store-contact-form' ) . '</p>';
 	}
 
-	// get user data
+	// get current user data
 	$user = wp_get_current_user();
 	$user_id = $user->ID;
 	$first_name = get_user_meta( $user_id, 'first_name', true );
 	$last_name = get_user_meta( $user_id, 'last_name', true );
 	$full_name = trim( $first_name . ' ' . $last_name );
 	$name_value = ! empty( $full_name ) ? $full_name : $user->display_name;
+
+	// get billing phone if woocommerce active
 	$billing_phone = class_exists( 'WooCommerce' ) ? get_user_meta( $user_id, 'billing_phone', true ) : '';
 	$phone_value = ! empty( $billing_phone ) ? $billing_phone : __( 'Not Available', 'store-contact-form' );
 
     // fetch recent orders if woocommerce is active
-    $orders = class_exists( 'WooCommerce' )
-        ? wc_get_orders( array(
-            'customer_id' => $user_id,
-            'limit'       => 15,
-            'orderby'     => 'date',
-            'order'       => 'DESC',
-        ) )
-        : array();
+	$orders = class_exists( 'WooCommerce' )
+		? wc_get_orders( array(
+			'customer_id' => $user_id,
+			'limit'       => 15,
+			'orderby'     => 'date',
+			'order'       => 'DESC',
+		) )
+		: array();
 
     // fetch subscriptions if woocommerce subscriptions is active
-    $subscriptions = (
-        function_exists( 'wcs_get_subscriptions_for_user' )
-        && class_exists( 'WC_Subscriptions' )
-    ) ? wcs_get_subscriptions_for_user( $user_id, array(
-            'order_type' => 'any',
-        ) )
-        : array();
+	$subscriptions = ( function_exists( 'wcs_get_subscriptions_for_user' ) && class_exists( 'WC_Subscriptions' ) )
+		? wcs_get_subscriptions_for_user( $user_id, array( 'order_type' => 'any' ) )
+		: array();
 
 	ob_start(); ?>
-	<form id="store-contact-form">
+	<form id="store-contact-form" method="post">
 		<p>
-			<label><?php _e( 'Name', 'store-contact-form' ); ?></label>
-			<input type="text" readonly value="<?php echo esc_attr( $name_value ); ?>" style="background-color: #f5f5f5;">
+			<label for="store-contact-name"><?php esc_html_e( 'Name', 'store-contact-form' ); ?></label>
+			<input type="text" id="store-contact-name" readonly value="<?php echo esc_attr( $name_value ); ?>" style="background-color: #f5f5f5;">
 		</p>
 		<p>
-			<label><?php _e( 'Email', 'store-contact-form' ); ?></label>
-			<input type="email" readonly value="<?php echo esc_attr( $user->user_email ); ?>" style="background-color: #f5f5f5;">
+			<label for="store-contact-email"><?php esc_html_e( 'Email', 'store-contact-form' ); ?></label>
+			<input type="email" id="store-contact-email" readonly value="<?php echo esc_attr( $user->user_email ); ?>" style="background-color: #f5f5f5;">
 		</p>
 		<p>
-			<label><?php _e( 'Phone', 'store-contact-form' ); ?></label>
-			<input type="text" readonly value="<?php echo esc_attr( $phone_value ); ?>" style="background-color: #f5f5f5;">
+			<label for="store-contact-phone"><?php esc_html_e( 'Phone', 'store-contact-form' ); ?></label>
+			<input type="text" id="store-contact-phone" readonly value="<?php echo esc_attr( $phone_value ); ?>" style="background-color: #f5f5f5;">
 		</p>
 		<p>
-			<label><?php _e( 'URL', 'store-contact-form' ); ?></label>
-			<input type="url" name="contact_url">
+			<label for="store-contact-url"><?php esc_html_e( 'URL', 'store-contact-form' ); ?></label>
+			<input type="url" id="store-contact-url" name="contact_url">
 		</p>
 		<p>
-			<label><?php _e( 'Subject', 'store-contact-form' ); ?></label>
-			<input type="text" name="contact_subject">
+			<label for="store-contact-subject"><?php esc_html_e( 'Subject', 'store-contact-form' ); ?></label>
+			<input type="text" id="store-contact-subject" name="contact_subject">
 		</p>
 		<p>
-			<label><?php _e( 'Message', 'store-contact-form' ); ?></label>
-			<textarea name="contact_message" rows="10" cols="40"></textarea>
+			<label for="store-contact-message"><?php esc_html_e( 'Message', 'store-contact-form' ); ?></label>
+			<textarea id="store-contact-message" name="contact_message" rows="10" cols="40"></textarea>
 		</p>
 		<?php if ( ! empty( $orders ) || ! empty( $subscriptions ) ) : ?>
 			<p>
-				<label><?php _e( 'Order or subscription', 'store-contact-form' ); ?></label>
-				<select name="contact_reference">
-					<option value=""><?php _e( 'Select Related Order', 'store-contact-form' ); ?></option>
+				<label for="store-contact-reference"><?php esc_html_e( 'Order or subscription', 'store-contact-form' ); ?></label>
+				<select id="store-contact-reference" name="contact_reference">
+					<option value=""><?php esc_html_e( 'Select Related Order', 'store-contact-form' ); ?></option>
 					<?php foreach ( $orders as $order ) : ?>
 						<option value="order_<?php echo esc_attr( $order->get_id() ); ?>">
-							<?php
-							echo sprintf(
-								__( 'Order #%1$s – %2$s', 'store-contact-form' ),
-								esc_html( $order->get_id() ),
-								esc_html( $order->get_date_created()->date( 'Y-m-d' ) )
-							);
-							?>
+							<?php printf( esc_html__( 'Order #%1$s – %2$s', 'store-contact-form' ), esc_html( $order->get_id() ), esc_html( $order->get_date_created()->date( 'Y-m-d' ) ) ); ?>
 						</option>
 					<?php endforeach; ?>
 					<?php foreach ( $subscriptions as $subscription ) : ?>
 						<option value="subscription_<?php echo esc_attr( $subscription->get_id() ); ?>">
-							<?php
-							echo sprintf(
-								__( 'Subscription #%1$s – %2$s', 'store-contact-form' ),
-								esc_html( $subscription->get_id() ),
-								esc_html( $subscription->get_date_created()->date( 'Y-m-d' ) )
-							);
-							?>
+							<?php printf( esc_html__( 'Subscription #%1$s – %2$s', 'store-contact-form' ), esc_html( $subscription->get_id() ), esc_html( $subscription->get_date_created()->date( 'Y-m-d' ) ) ); ?>
 						</option>
 					<?php endforeach; ?>
 				</select>
@@ -125,10 +111,11 @@ function store_contact_form_display() {
 		<p><input type="submit" value="<?php esc_attr_e( 'Send Message', 'store-contact-form' ); ?>"></p>
 		<div id="store-contact-response"></div>
 	</form>
-	<?php return ob_get_clean();
+	<?php
+	return ob_get_clean();
 }
 
-// enqueue js only if shortcode exists and user is logged-in
+// enqueue js only if shortcode exists and user is logged in
 add_action( 'wp_enqueue_scripts', 'store_contact_form_enqueue_js' );
 function store_contact_form_enqueue_js() {
 	// skip if user not logged in
@@ -138,84 +125,88 @@ function store_contact_form_enqueue_js() {
 
 	// get current post object
 	$post = get_post();
-	if ( ! $post instanceof WP_Post ) {
+	// skip if not a post or shortcode missing
+	if ( ! $post instanceof WP_Post || ! has_shortcode( $post->post_content, 'store_contact_form' ) ) {
 		return;
 	}
 
-	// check if contact form shortcode is present
-	if ( has_shortcode( $post->post_content, 'store_contact_form' ) ) {
-		// enqueue contact form js with cache-busting version
-		wp_enqueue_script(
-			'store-contact-form',
-			plugin_dir_url( __FILE__ ) . 'store-contact-form.js',
-			array( 'jquery' ),
-			filemtime( plugin_dir_path( __FILE__ ) . 'store-contact-form.js' ),
-			true
-		);
+	// enqueue contact form script
+	wp_enqueue_script(
+		'store-contact-form',
+		plugin_dir_url( __FILE__ ) . 'store-contact-form.js',
+		array( 'jquery' ),
+		filemtime( plugin_dir_path( __FILE__ ) . 'store-contact-form.js' ),
+		true
+	);
 
-		// pass ajax url and nonce to js
-		wp_localize_script( 'store-contact-form', 'storeContactForm', array(
+	// pass ajax url and nonce to js
+	wp_localize_script(
+		'store-contact-form',
+		'storeContactForm',
+		array(
 			'ajax_url' => admin_url( 'admin-ajax.php' ),
 			'nonce'    => wp_create_nonce( 'store_contact_form_nonce' ),
-		) );
-	}
+		)
+	);
 }
 
 // handle ajax submission for contact form
 add_action( 'wp_ajax_store_contact_form_submit', 'store_contact_form_submit' );
 function store_contact_form_submit() {
-    // verify nonce
-    check_ajax_referer( 'store_contact_form_nonce', 'nonce' );
+	// verify nonce
+	check_ajax_referer( 'store_contact_form_nonce', 'nonce' );
 
-    // ensure user is logged in
-    $user = wp_get_current_user();
-    if ( ! $user->exists() ) {
-        wp_send_json_error( __( 'Not logged in', 'store-contact-form' ) );
-    }
+	// ensure user is logged in
+	$user = wp_get_current_user();
+	if ( ! $user->exists() ) {
+		wp_send_json_error( __( 'Not logged in', 'store-contact-form' ) );
+	}
 
-    // collect user data
-    $user_id       = $user->ID;
-    $first_name    = get_user_meta( $user_id, 'first_name', true );
-    $last_name     = get_user_meta( $user_id, 'last_name', true );
-    $full_name     = trim( $first_name . ' ' . $last_name );
-    $name_value    = ! empty( $full_name ) ? $full_name : $user->display_name;
-    $email         = sanitize_email( $user->user_email );
-    $billing_phone = class_exists( 'WooCommerce' ) ? get_user_meta( $user_id, 'billing_phone', true ) : '';
-    $phone_value   = ! empty( $billing_phone ) ? sanitize_text_field( $billing_phone ) : __( 'Not Available', 'store-contact-form' );
+	// collect user data
+	$user_id    = $user->ID;
+	$first_name = get_user_meta( $user_id, 'first_name', true );
+	$last_name  = get_user_meta( $user_id, 'last_name', true );
+	$full_name  = trim( $first_name . ' ' . $last_name );
+	$name_value = ! empty( $full_name ) ? $full_name : $user->display_name;
+	$email      = sanitize_email( $user->user_email );
+	
+	// get and sanitize phone
+	$billing_phone = class_exists( 'WooCommerce' ) ? get_user_meta( $user_id, 'billing_phone', true ) : '';
+	$phone_value   = ! empty( $billing_phone ) ? sanitize_text_field( $billing_phone ) : __( 'Not Available', 'store-contact-form' );
 
-    // sanitize user-submitted fields
-    $subject   = sanitize_text_field( $_POST['contact_subject'] ?? '' );
-    $url       = esc_url_raw( $_POST['contact_url'] ?? '' );
-    $message   = sanitize_textarea_field( $_POST['contact_message'] ?? '' );
-    $reference = sanitize_text_field( $_POST['contact_reference'] ?? '' );
+	// sanitize user inputs
+	$subject   = sanitize_text_field( $_POST['contact_subject'] ?? '' );
+	$url       = esc_url_raw( $_POST['contact_url'] ?? '' );
+	$message   = sanitize_textarea_field( $_POST['contact_message'] ?? '' );
+	$reference = sanitize_text_field( $_POST['contact_reference'] ?? '' );
 
-    // check required fields
-    if ( empty( $subject ) || empty( $message ) ) {
-        wp_send_json_error( __( 'Subject and message are required', 'store-contact-form' ) );
-    }
+	// check required fields
+	if ( empty( $subject ) || empty( $message ) ) {
+		wp_send_json_error( __( 'Subject and message are required', 'store-contact-form' ) );
+	}
 
-    // build email message
-    $email_body  = "Name: {$name_value}\n";
-    $email_body .= "Email: {$email}\n";
-    $email_body .= "Phone: {$phone_value}\n";
-    $email_body .= "URL: {$url}\n";
-    $email_body .= "Subject: {$subject}\n";
-    $email_body .= "Message: {$message}\n";
-    $email_body .= "Reference: {$reference}\n";
+	// build email body
+	$email_body  = "Name: {$name_value}\n";
+	$email_body .= "Email: {$email}\n";
+	$email_body .= "Phone: {$phone_value}\n";
+	$email_body .= "URL: {$url}\n";
+	$email_body .= "Subject: {$subject}\n";
+	$email_body .= "Message: {$message}\n";
+	$email_body .= "Reference: {$reference}\n";
 
-    // send email to site admin
-    $sent = wp_mail(
-        get_option( 'admin_email' ),
-        __( 'Store Contact Form Submission', 'store-contact-form' ),
-        $email_body
-    );
+	// send email to admin
+	$sent = wp_mail(
+		get_option( 'admin_email' ),
+		__( 'Store Contact Form Submission', 'store-contact-form' ),
+		$email_body
+	);
 
-    // return result
-    if ( $sent ) {
-        wp_send_json_success( __( 'Message sent successfully.', 'store-contact-form' ) );
-    } else {
-        wp_send_json_error( __( 'Failed to send message.', 'store-contact-form' ) );
-    }
+	// return response
+	if ( $sent ) {
+		wp_send_json_success( __( 'Message sent successfully.', 'store-contact-form' ) );
+	}
+
+	wp_send_json_error( __( 'Failed to send message.', 'store-contact-form' ) );
 }
 
 // Ref: ChatGPT
