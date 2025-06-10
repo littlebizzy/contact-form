@@ -72,6 +72,7 @@ function store_contact_form_display() {
 			'wc-pending',
 			'wc-active',
 			'wc-on-hold',
+			'wc-pending-cancel',
 			'wc-cancelled',
 			'wc-expired',
 			'wc-switched',
@@ -102,30 +103,38 @@ function store_contact_form_display() {
 		</p>
 		<p>
 			<label for="store-contact-subject"><?php esc_html_e( 'Subject', 'store-contact-form' ); ?></label>
-			<input type="text" id="store-contact-subject" name="contact_subject">
+			<input type="text" id="store-contact-subject" name="contact_subject" required>
 		</p>
 		<p>
 			<label for="store-contact-message"><?php esc_html_e( 'Message', 'store-contact-form' ); ?></label>
-			<textarea id="store-contact-message" name="contact_message" rows="10" cols="40"></textarea>
+			<textarea id="store-contact-message" name="contact_message" rows="10" cols="40" required></textarea>
 		</p>
-		<?php if ( ! empty( $orders ) || ! empty( $subscriptions ) ) : ?>
-			<p>
-				<label for="store-contact-reference"><?php esc_html_e( 'Order or subscription', 'store-contact-form' ); ?></label>
-				<select id="store-contact-reference" name="contact_reference">
-					<option value=""><?php esc_html_e( 'Select Related Order', 'store-contact-form' ); ?></option>
-					<?php foreach ( $orders as $order ) : ?>
-						<option value="order_<?php echo esc_attr( $order->get_id() ); ?>">
-							<?php printf( esc_html__( 'Order #%1$s – %2$s', 'store-contact-form' ), esc_html( $order->get_id() ), esc_html( $order->get_date_created()->date( 'Y-m-d' ) ) ); ?>
-						</option>
-					<?php endforeach; ?>
-					<?php foreach ( $subscriptions as $subscription ) : ?>
-						<option value="subscription_<?php echo esc_attr( $subscription->get_id() ); ?>">
-							<?php printf( esc_html__( 'Subscription #%1$s – %2$s', 'store-contact-form' ), esc_html( $subscription->get_id() ), esc_html( $subscription->get_date_created()->date( 'Y-m-d' ) ) ); ?>
-						</option>
-					<?php endforeach; ?>
-				</select>
-			</p>
-		<?php endif; ?>
+        <?php if ( ! empty( $orders ) || ! empty( $subscriptions ) ) : ?>
+            <p>
+                <label for="store-contact-reference"><?php esc_html_e( 'Order or subscription', 'store-contact-form' ); ?></label>
+                <select id="store-contact-reference" name="contact_reference">
+                    <option value=""><?php esc_html_e( 'Select Order or Subscription', 'store-contact-form' ); ?></option>
+                    <?php foreach ( $orders as $order ) : ?>
+                        <option value="order_<?php echo esc_attr( $order->get_id() ); ?>">
+                            <?php printf(
+                                esc_html__( 'Order #%1$s – %2$s', 'store-contact-form' ),
+                                esc_html( $order->get_id() ),
+                                esc_html( $order->get_date_created()->date_i18n( get_option( 'date_format' ) ) )
+                            ); ?>
+                        </option>
+                    <?php endforeach; ?>
+                    <?php foreach ( $subscriptions as $subscription ) : ?>
+                        <option value="subscription_<?php echo esc_attr( $subscription->get_id() ); ?>">
+                            <?php printf(
+                                esc_html__( 'Subscription #%1$s – %2$s', 'store-contact-form' ),
+                                esc_html( $subscription->get_id() ),
+                                esc_html( $subscription->get_date_created()->date_i18n( get_option( 'date_format' ) ) )
+                            ); ?>
+                        </option>
+                    <?php endforeach; ?>
+                </select>
+            </p>
+        <?php endif; ?>
 		<input type="hidden" name="action" value="store_contact_form_submit">
 		<?php wp_nonce_field( 'store_contact_form_nonce', 'nonce' ); ?>
 		<p><input type="submit" value="<?php esc_attr_e( 'Send Message', 'store-contact-form' ); ?>"></p>
@@ -143,12 +152,11 @@ function store_contact_form_enqueue_js() {
 		return;
 	}
 
-	// get current post object
-	$post = get_post();
-	// skip if not a post or shortcode missing
-	if ( ! $post instanceof WP_Post || ! has_shortcode( $post->post_content, 'store_contact_form' ) ) {
-		return;
-	}
+    // get current queried post to reliably detect shortcode presence
+    $post = get_queried_object();
+    if ( ! $post instanceof WP_Post || ! has_shortcode( $post->post_content ?? '', 'store_contact_form' ) ) {
+        return;
+    }
 
 	// enqueue contact form script
 	wp_enqueue_script(
