@@ -47,20 +47,40 @@ function store_contact_form_display() {
 	$billing_phone = class_exists( 'WooCommerce' ) ? get_user_meta( $user_id, 'billing_phone', true ) : '';
 	$phone_value = ! empty( $billing_phone ) ? $billing_phone : __( 'Not Available', 'store-contact-form' );
 
-    // fetch recent orders if woocommerce is active
-	$orders = class_exists( 'WooCommerce' )
-		? wc_get_orders( array(
-			'customer_id' => $user_id,
-			'limit'       => 15,
-			'orderby'     => 'date',
-			'order'       => 'DESC',
-		) )
-		: array();
+	// fetch recent orders if woocommerce is active
+	$orders = class_exists( 'WooCommerce' ) ? wc_get_orders( array(
+		'customer_id' => $user_id,
+		'status'      => array(
+			'wc-pending',
+			'wc-processing',
+			'wc-on-hold',
+			'wc-completed',
+			'wc-cancelled',
+			'wc-refunded',
+			'wc-failed',
+		),
+		'type'        => 'shop_order',
+		'orderby'     => 'date',
+		'order'       => 'DESC',
+		'limit'       => 15,
+		'return'      => 'objects',
+	) ) : array();
 
-    // fetch subscriptions if woocommerce subscriptions is active
-	$subscriptions = ( function_exists( 'wcs_get_subscriptions_for_user' ) && class_exists( 'WC_Subscriptions' ) )
-		? wcs_get_subscriptions_for_user( $user_id, array( 'order_type' => 'any' ) )
-		: array();
+	// fetch recent subscriptions if subscriptions plugin is active
+	$subscriptions = ( class_exists( 'WC_Subscriptions' ) && function_exists( 'wcs_get_subscriptions_for_user' ) ) ? wcs_get_subscriptions_for_user( $user_id, array(
+		'post_status' => array(
+			'wc-pending',
+			'wc-active',
+			'wc-on-hold',
+			'wc-cancelled',
+			'wc-expired',
+			'wc-switched',
+		),
+		'orderby'     => 'date',
+		'order'       => 'DESC',
+		'limit'       => 15,
+		'return'      => 'subscriptions',
+	) ) : array();
 
 	ob_start(); ?>
 	<form id="store-contact-form" method="post">
