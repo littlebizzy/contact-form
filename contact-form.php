@@ -2,7 +2,7 @@
 /*
 Plugin Name: Contact Form
 Plugin URI: https://www.littlebizzy.com/plugins/contact-form
-Description: Easy contact form for WooCommerce
+Description: Intuitive WordPress contact form
 Version: 1.0.0
 Author: LittleBizzy
 Author URI: https://www.littlebizzy.com
