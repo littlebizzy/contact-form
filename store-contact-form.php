@@ -94,7 +94,7 @@ function store_contact_form_display() {
 			<p>
 				<label><?php _e( 'Order or subscription', 'store-contact-form' ); ?></label>
 				<select name="contact_reference">
-					<option value=""><?php _e( 'Select', 'store-contact-form' ); ?></option>
+					<option value=""><?php _e( 'Select Related Order', 'store-contact-form' ); ?></option>
 					<?php foreach ( $orders as $order ) : ?>
 						<option value="order_<?php echo esc_attr( $order->get_id() ); ?>">
 							<?php
@@ -122,7 +122,7 @@ function store_contact_form_display() {
 		<?php endif; ?>
 		<input type="hidden" name="action" value="store_contact_form_submit">
 		<?php wp_nonce_field( 'store_contact_form_nonce', 'nonce' ); ?>
-		<p><input type="submit" value="<?php esc_attr_e( 'Send', 'store-contact-form' ); ?>"></p>
+		<p><input type="submit" value="<?php esc_attr_e( 'Send Message', 'store-contact-form' ); ?>"></p>
 		<div id="store-contact-response"></div>
 	</form>
 	<?php return ob_get_clean();
