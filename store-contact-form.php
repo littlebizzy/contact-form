@@ -55,7 +55,7 @@ function store_contact_form_display() {
         ) )
         : array();
 
-    // fetch subscriptions if subscriptions plugin is active
+    // fetch subscriptions if woocommerce subscriptions is active
     $subscriptions = (
         function_exists( 'wcs_get_subscriptions_for_user' )
         && class_exists( 'WC_Subscriptions' )
@@ -128,7 +128,7 @@ function store_contact_form_display() {
 	<?php return ob_get_clean();
 }
 
-// enqueue js only if shortcode exists and user is logged in
+// enqueue js only if shortcode exists and user is logged-in
 add_action( 'wp_enqueue_scripts', 'store_contact_form_enqueue_js' );
 function store_contact_form_enqueue_js() {
 	if ( ! is_user_logged_in() ) {
@@ -152,6 +152,7 @@ function store_contact_form_enqueue_js() {
 	}
 }
 
+// handle ajax submission for contact form
 add_action( 'wp_ajax_store_contact_form_submit', 'store_contact_form_submit' );
 function store_contact_form_submit() {
 	check_ajax_referer( 'store_contact_form_nonce', 'nonce' );
