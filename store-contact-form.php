@@ -31,10 +31,10 @@ add_filter( 'gu_override_dot_org', function( $overrides ) {
 add_shortcode( 'store_contact_form', 'store_contact_form_display' );
 function store_contact_form_display() {
 	// only show form to logged-in users
-    $user = wp_get_current_user();
-    if ( ! $user || ! $user->ID ) {
-        return '<p>' . esc_html__( 'You must be logged in to contact us.', 'store-contact-form' ) . '</p>';
-    }
+	$user = wp_get_current_user();
+	if ( ! $user->exists() ) {
+    	return '<p>' . esc_html__( 'You must be logged in to contact us.', 'store-contact-form' ) . '</p>';
+	}
 
 	// get current user data
 	$user_id = $user->ID;
@@ -51,7 +51,7 @@ function store_contact_form_display() {
 	// fetch recent orders if woocommerce is active
 	$orders = class_exists( 'WooCommerce' ) ? wc_get_orders( array(
 		'customer_id' => $user_id,
-		'status'      => array(
+		'status' => array(
 			'wc-pending',
 			'wc-processing',
 			'wc-on-hold',
@@ -60,11 +60,11 @@ function store_contact_form_display() {
 			'wc-refunded',
 			'wc-failed',
 		),
-		'type'        => 'shop_order',
-		'orderby'     => 'date',
-		'order'       => 'DESC',
-		'limit'       => 15,
-		'return'      => 'objects',
+		'type' => 'shop_order',
+		'orderby' => 'date',
+		'order' => 'DESC',
+		'limit' => 15,
+		'return' => 'objects',
 	) ) : array();
 
 	// fetch recent subscriptions if subscriptions plugin is active
@@ -78,10 +78,10 @@ function store_contact_form_display() {
 			'wc-expired',
 			'wc-switched',
 		),
-		'orderby'     => 'date',
-		'order'       => 'DESC',
-		'limit'       => 15,
-		'return'      => 'subscriptions',
+		'orderby' => 'date',
+		'order' => 'DESC',
+		'limit' => 15,
+		'return' => 'subscriptions',
 	) ) : array();
 
 	ob_start(); ?>
@@ -174,7 +174,7 @@ function store_contact_form_enqueue_js() {
 		'storeContactForm',
 		array(
 			'ajax_url' => admin_url( 'admin-ajax.php' ),
-			'nonce'    => wp_create_nonce( 'store_contact_form_nonce' ),
+			'nonce' => wp_create_nonce( 'store_contact_form_nonce' ),
 		)
 	);
 }
@@ -192,21 +192,21 @@ function store_contact_form_submit() {
 	}
 
 	// collect user data
-	$user_id    = $user->ID;
+	$user_id = $user->ID;
 	$first_name = get_user_meta( $user_id, 'first_name', true );
-	$last_name  = get_user_meta( $user_id, 'last_name', true );
-	$full_name  = trim( $first_name . ' ' . $last_name );
+	$last_name = get_user_meta( $user_id, 'last_name', true );
+	$full_name = trim( $first_name . ' ' . $last_name );
 	$name_value = ! empty( $full_name ) ? $full_name : $user->display_name;
-	$email      = sanitize_email( $user->user_email );
+	$email = $user->user_email;
 	
-	// get and sanitize phone
+	// get billing phone if woocommerce active
 	$billing_phone = class_exists( 'WooCommerce' ) ? get_user_meta( $user_id, 'billing_phone', true ) : '';
-	$phone_value   = ! empty( $billing_phone ) ? sanitize_text_field( $billing_phone ) : __( 'Not Available', 'store-contact-form' );
+	$phone_value = ! empty( $billing_phone ) ? $billing_phone : __( 'Not Available', 'store-contact-form' );
 
 	// sanitize user inputs
-	$subject   = sanitize_text_field( $_POST['contact_subject'] ?? '' );
-	$url       = esc_url_raw( $_POST['contact_url'] ?? '' );
-	$message   = sanitize_textarea_field( $_POST['contact_message'] ?? '' );
+	$subject = sanitize_text_field( $_POST['contact_subject'] ?? '' );
+	$url = esc_url_raw( $_POST['contact_url'] ?? '' );
+	$message = sanitize_textarea_field( $_POST['contact_message'] ?? '' );
 	$reference = sanitize_text_field( $_POST['contact_reference'] ?? '' );
 
 	// check required fields
@@ -219,16 +219,16 @@ function store_contact_form_submit() {
 	$email_body .= "Email: {$email}\n";
 	$email_body .= "Phone: {$phone_value}\n";
 	$email_body .= "URL: {$url}\n";
+	$email_body .= "Reference: {$reference}\n";
 	$email_body .= "Subject: {$subject}\n";
 	$email_body .= "Message: {$message}\n";
-	$email_body .= "Reference: {$reference}\n";
 
 	// send email to admin
-	$sent = wp_mail(
-		get_option( 'admin_email' ),
-		__( 'Store Contact Form Submission', 'store-contact-form' ),
-		$email_body
-	);
+    $sent = wp_mail(
+        get_option( 'admin_email' ),
+        sprintf( __( 'Contact Form: %s', 'store-contact-form' ), $subject ),
+        $email_body
+    );
 
 	// return response
 	if ( $sent ) {
