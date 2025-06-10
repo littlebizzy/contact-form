@@ -31,17 +31,18 @@ add_filter( 'gu_override_dot_org', function( $overrides ) {
 add_shortcode( 'store_contact_form', 'store_contact_form_display' );
 function store_contact_form_display() {
 	// only show form to logged-in users
-	if ( ! is_user_logged_in() ) {
-		return '<p>' . esc_html__( 'You must be logged in to contact us.', 'store-contact-form' ) . '</p>';
-	}
+    $user = wp_get_current_user();
+    if ( ! $user || ! $user->ID ) {
+        return '<p>' . esc_html__( 'You must be logged in to contact us.', 'store-contact-form' ) . '</p>';
+    }
 
 	// get current user data
-	$user = wp_get_current_user();
 	$user_id = $user->ID;
 	$first_name = get_user_meta( $user_id, 'first_name', true );
 	$last_name = get_user_meta( $user_id, 'last_name', true );
 	$full_name = trim( $first_name . ' ' . $last_name );
 	$name_value = ! empty( $full_name ) ? $full_name : $user->display_name;
+	$email = $user->user_email;
 
 	// get billing phone if woocommerce active
 	$billing_phone = class_exists( 'WooCommerce' ) ? get_user_meta( $user_id, 'billing_phone', true ) : '';
@@ -91,7 +92,7 @@ function store_contact_form_display() {
 		</p>
 		<p>
 			<label for="store-contact-email"><?php esc_html_e( 'Email', 'store-contact-form' ); ?></label>
-			<input type="email" id="store-contact-email" readonly value="<?php echo esc_attr( $user->user_email ); ?>" style="background-color: #f5f5f5;">
+			<input type="email" id="store-contact-email" readonly value="<?php echo esc_attr( $email ); ?>" style="background-color: #f5f5f5;">
 		</p>
 		<p>
 			<label for="store-contact-phone"><?php esc_html_e( 'Phone', 'store-contact-form' ); ?></label>
@@ -111,7 +112,7 @@ function store_contact_form_display() {
 		</p>
         <?php if ( ! empty( $orders ) || ! empty( $subscriptions ) ) : ?>
             <p>
-                <label for="store-contact-reference"><?php esc_html_e( 'Order or subscription', 'store-contact-form' ); ?></label>
+                <label for="store-contact-reference"><?php esc_html_e( 'Order or Subscription', 'store-contact-form' ); ?></label>
                 <select id="store-contact-reference" name="contact_reference">
                     <option value=""><?php esc_html_e( 'Select Order or Subscription', 'store-contact-form' ); ?></option>
                     <?php foreach ( $orders as $order ) : ?>
