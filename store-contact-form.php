@@ -155,50 +155,58 @@ function store_contact_form_enqueue_js() {
 // handle ajax submission for contact form
 add_action( 'wp_ajax_store_contact_form_submit', 'store_contact_form_submit' );
 function store_contact_form_submit() {
-	check_ajax_referer( 'store_contact_form_nonce', 'nonce' );
+    // verify nonce
+    check_ajax_referer( 'store_contact_form_nonce', 'nonce' );
 
-	$user = wp_get_current_user();
-	if ( ! $user->exists() ) {
-		wp_send_json_error( __( 'Not logged in', 'store-contact-form' ) );
-	}
+    // ensure user is logged in
+    $user = wp_get_current_user();
+    if ( ! $user->exists() ) {
+        wp_send_json_error( __( 'Not logged in', 'store-contact-form' ) );
+    }
 
-	$user_id    = $user->ID;
-	$first_name = get_user_meta( $user_id, 'first_name', true );
-	$last_name  = get_user_meta( $user_id, 'last_name', true );
-	$full_name  = trim( $first_name . ' ' . $last_name );
-	$name       = ! empty( $full_name ) ? $full_name : $user->display_name;
-	$email      = sanitize_email( $user->user_email );
-	$phone      = get_user_meta( $user_id, 'billing_phone', true );
-	$phone      = ! empty( $phone ) ? sanitize_text_field( $phone ) : __( 'Not Available', 'store-contact-form' );
+    // collect user data
+    $user_id       = $user->ID;
+    $first_name    = get_user_meta( $user_id, 'first_name', true );
+    $last_name     = get_user_meta( $user_id, 'last_name', true );
+    $full_name     = trim( $first_name . ' ' . $last_name );
+    $name_value    = ! empty( $full_name ) ? $full_name : $user->display_name;
+    $email         = sanitize_email( $user->user_email );
+    $billing_phone = class_exists( 'WooCommerce' ) ? get_user_meta( $user_id, 'billing_phone', true ) : '';
+    $phone_value   = ! empty( $billing_phone ) ? sanitize_text_field( $billing_phone ) : __( 'Not Available', 'store-contact-form' );
 
-	$subject   = sanitize_text_field( $_POST['contact_subject'] ?? '' );
-	$url       = esc_url_raw( $_POST['contact_url'] ?? '' );
-	$message   = sanitize_textarea_field( $_POST['contact_message'] ?? '' );
-	$reference = sanitize_text_field( $_POST['contact_reference'] ?? '' );
+    // sanitize user-submitted fields
+    $subject   = sanitize_text_field( $_POST['contact_subject'] ?? '' );
+    $url       = esc_url_raw( $_POST['contact_url'] ?? '' );
+    $message   = sanitize_textarea_field( $_POST['contact_message'] ?? '' );
+    $reference = sanitize_text_field( $_POST['contact_reference'] ?? '' );
 
-	if ( empty( $subject ) || empty( $message ) ) {
-		wp_send_json_error( __( 'Subject and message are required', 'store-contact-form' ) );
-	}
+    // check required fields
+    if ( empty( $subject ) || empty( $message ) ) {
+        wp_send_json_error( __( 'Subject and message are required', 'store-contact-form' ) );
+    }
 
-	$email_body  = "Name: {$name}\n";
-	$email_body .= "Email: {$email}\n";
-	$email_body .= "Phone: {$phone}\n";
-	$email_body .= "URL: {$url}\n";
-	$email_body .= "Subject: {$subject}\n";
-	$email_body .= "Message: {$message}\n";
-	$email_body .= "Reference: {$reference}\n";
+    // build email message
+    $email_body  = "Name: {$name_value}\n";
+    $email_body .= "Email: {$email}\n";
+    $email_body .= "Phone: {$phone_value}\n";
+    $email_body .= "URL: {$url}\n";
+    $email_body .= "Subject: {$subject}\n";
+    $email_body .= "Message: {$message}\n";
+    $email_body .= "Reference: {$reference}\n";
 
-	$sent = wp_mail(
-		get_option( 'admin_email' ),
-		__( 'Store Contact Form Submission', 'store-contact-form' ),
-		$email_body
-	);
+    // send email to site admin
+    $sent = wp_mail(
+        get_option( 'admin_email' ),
+        __( 'Store Contact Form Submission', 'store-contact-form' ),
+        $email_body
+    );
 
-	if ( $sent ) {
-		wp_send_json_success( __( 'Message sent successfully.', 'store-contact-form' ) );
-	} else {
-		wp_send_json_error( __( 'Failed to send message.', 'store-contact-form' ) );
-	}
+    // return result
+    if ( $sent ) {
+        wp_send_json_success( __( 'Message sent successfully.', 'store-contact-form' ) );
+    } else {
+        wp_send_json_error( __( 'Failed to send message.', 'store-contact-form' ) );
+    }
 }
 
 // Ref: ChatGPT
