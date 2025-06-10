@@ -4,8 +4,14 @@ jQuery( function ( $ ) {
 
 		var $form = $( this );
 		var $response = $( '#store-contact-response' );
-		var formData = $form.serialize();
 
+		// enforce HTML5 field validation before ajax
+		if ( ! $form[0].checkValidity() ) {
+			$form[0].reportValidity();
+			return;
+		}
+
+		var formData = $form.serialize();
 		$response.text( 'Sending...' );
 
 		$.post( storeContactForm.ajax_url, formData, function ( res ) {
