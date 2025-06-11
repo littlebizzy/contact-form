@@ -4,6 +4,10 @@ Intuitive WordPress contact form
 
 ## Changelog
 
+### 1.0.2
+- fixed response div element name to `#contact-form-response`
+- added color styling for JS success and error messages
+
 ### 1.0.1
 - moved order/subscription dropdown above subject field
 - improved dropdown labels to include product or subscription names
