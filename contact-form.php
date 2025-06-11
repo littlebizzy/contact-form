@@ -3,7 +3,7 @@
 Plugin Name: Contact Form
 Plugin URI: https://www.littlebizzy.com/plugins/contact-form
 Description: Intuitive WordPress contact form
-Version: 1.0.1
+Version: 1.0.2
 Author: LittleBizzy
 Author URI: https://www.littlebizzy.com
 Requires PHP: 7.0
@@ -155,7 +155,7 @@ function contact_form_display() {
 		<input type="hidden" name="action" value="contact_form_submit">
 		<?php wp_nonce_field( 'contact_form_nonce', 'nonce' ); ?>
 		<p><input type="submit" value="<?php esc_attr_e( 'Send Message', 'contact-form' ); ?>"></p>
-		<div id="contact-response"></div>
+		<div id="contact-form-response"></div>
 	</form>
 	<?php
 	return ob_get_clean();
