@@ -103,30 +103,46 @@ function contact_form_display() {
 			<input type="url" id="contact-url" name="contact_url">
 		</p>
         <?php if ( ! empty( $orders ) || ! empty( $subscriptions ) ) : ?>
-            <p>
-                <label for="contact-reference"><?php esc_html_e( 'Order or Subscription', 'contact-form' ); ?></label>
-                <select id="contact-reference" name="contact_reference">
-                    <option value=""><?php esc_html_e( 'Select Order or Subscription', 'contact-form' ); ?></option>
-                    <?php foreach ( $orders as $order ) : ?>
-                        <option value="order_<?php echo esc_attr( $order->get_id() ); ?>">
-                            <?php printf(
-                                esc_html__( 'Order #%1$s – %2$s', 'contact-form' ),
-                                esc_html( $order->get_id() ),
-                                esc_html( $order->get_date_created()->date_i18n( get_option( 'date_format' ) ) )
-                            ); ?>
-                        </option>
-                    <?php endforeach; ?>
-                    <?php foreach ( $subscriptions as $subscription ) : ?>
-                        <option value="subscription_<?php echo esc_attr( $subscription->get_id() ); ?>">
-                            <?php printf(
-                                esc_html__( 'Subscription #%1$s – %2$s', 'contact-form' ),
-                                esc_html( $subscription->get_id() ),
-                                esc_html( $subscription->get_date_created()->date_i18n( get_option( 'date_format' ) ) )
-                            ); ?>
-                        </option>
-                    <?php endforeach; ?>
-                </select>
-            </p>
+                <p>
+                    <label for="contact-reference"><?php esc_html_e( 'Order or Subscription', 'contact-form' ); ?></label>
+                    <select id="contact-reference" name="contact_reference">
+                        <option value=""><?php esc_html_e( 'Select Order or Subscription', 'contact-form' ); ?></option>
+                        <?php foreach ( $orders as $order ) : ?>
+                            <?php
+                            $product_names = array();
+                            foreach ( $order->get_items() as $item ) {
+                                $product_names[] = $item->get_name();
+                            }
+                            $product_list = implode( ', ', $product_names );
+                            ?>
+                            <option value="order_<?php echo esc_attr( $order->get_id() ); ?>">
+                                <?php printf(
+                                    esc_html__( 'Order #%1$s – %2$s – %3$s', 'contact-form' ),
+                                    esc_html( $order->get_id() ),
+                                    esc_html( $order->get_date_created()->date_i18n( get_option( 'date_format' ) ) ),
+                                    esc_html( $product_list )
+                                ); ?>
+                            </option>
+                        <?php endforeach; ?>
+                        <?php foreach ( $subscriptions as $subscription ) : ?>
+                            <?php
+                            $product_names = array();
+                            foreach ( $subscription->get_items() as $item ) {
+                                $product_names[] = $item->get_name();
+                            }
+                            $product_list = implode( ', ', $product_names );
+                            ?>
+                            <option value="subscription_<?php echo esc_attr( $subscription->get_id() ); ?>">
+                                <?php printf(
+                                    esc_html__( 'Subscription #%1$s – %2$s – %3$s', 'contact-form' ),
+                                    esc_html( $subscription->get_id() ),
+                                    esc_html( $subscription->get_date_created()->date_i18n( get_option( 'date_format' ) ) ),
+                                    esc_html( $product_list )
+                                ); ?>
+                            </option>
+                        <?php endforeach; ?>
+                    </select>
+                </p>
         <?php endif; ?>
 		<p>
 			<label for="contact-subject"><?php esc_html_e( 'Subject', 'contact-form' ); ?></label>
