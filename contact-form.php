@@ -3,7 +3,7 @@
 Plugin Name: Contact Form
 Plugin URI: https://www.littlebizzy.com/plugins/contact-form
 Description: Intuitive WordPress contact form
-Version: 1.0.0
+Version: 1.0.1
 Author: LittleBizzy
 Author URI: https://www.littlebizzy.com
 Requires PHP: 7.0
@@ -102,14 +102,6 @@ function contact_form_display() {
 			<label for="contact-url"><?php esc_html_e( 'URL', 'contact-form' ); ?></label>
 			<input type="url" id="contact-url" name="contact_url">
 		</p>
-		<p>
-			<label for="contact-subject"><?php esc_html_e( 'Subject', 'contact-form' ); ?></label>
-			<input type="text" id="contact-subject" name="contact_subject" required>
-		</p>
-		<p>
-			<label for="contact-message"><?php esc_html_e( 'Message', 'contact-form' ); ?></label>
-			<textarea id="contact-message" name="contact_message" rows="10" cols="40" required></textarea>
-		</p>
         <?php if ( ! empty( $orders ) || ! empty( $subscriptions ) ) : ?>
             <p>
                 <label for="contact-reference"><?php esc_html_e( 'Order or Subscription', 'contact-form' ); ?></label>
@@ -136,6 +128,14 @@ function contact_form_display() {
                 </select>
             </p>
         <?php endif; ?>
+		<p>
+			<label for="contact-subject"><?php esc_html_e( 'Subject', 'contact-form' ); ?></label>
+			<input type="text" id="contact-subject" name="contact_subject" required>
+		</p>
+		<p>
+			<label for="contact-message"><?php esc_html_e( 'Message', 'contact-form' ); ?></label>
+			<textarea id="contact-message" name="contact_message" rows="10" cols="40" required></textarea>
+		</p>
 		<input type="hidden" name="action" value="contact_form_submit">
 		<?php wp_nonce_field( 'contact_form_nonce', 'nonce' ); ?>
 		<p><input type="submit" value="<?php esc_attr_e( 'Send Message', 'contact-form' ); ?>"></p>
