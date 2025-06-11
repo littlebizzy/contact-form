@@ -4,6 +4,10 @@ Intuitive WordPress contact form
 
 ## Changelog
 
+### 1.0.1
+- moved order/subscription dropdown above subject field
+- improved dropdown labels to include product or subscription names
+
 ### 1.0.0
 - initial release
 - supports PHP 7.0 to 8.3
