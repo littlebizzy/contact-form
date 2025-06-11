@@ -16,13 +16,13 @@ jQuery( function ( $ ) {
 
 		$.post( contactForm.ajax_url, formData, function ( res ) {
 			if ( res.success ) {
-				$response.text( res.data );
+				$response.text( res.data ).css( 'color', 'green' );
 				$form[0].reset();
 			} else {
-				$response.text( res.data || 'Error occurred.' );
+				$response.text( res.data || 'Error occurred.' ).css( 'color', 'red' );
 			}
 		} ).fail( function () {
-			$response.text( 'Request failed. Please try again.' );
+			$response.text( 'Request failed. Please try again.' ).css( 'color', 'red' );
 		} );
 	} );
 } );
