@@ -3,7 +3,7 @@
 Plugin Name: Contact Form
 Plugin URI: https://www.littlebizzy.com/plugins/contact-form
 Description: Intuitive WordPress contact form
-Version: 1.0.2
+Version: 1.0.3
 Author: LittleBizzy
 Author URI: https://www.littlebizzy.com
 Requires PHP: 7.0
@@ -29,13 +29,24 @@ add_filter( 'gu_override_dot_org', function( $overrides ) {
 
 // display contact form shortcode
 add_shortcode( 'contact_form', 'contact_form_display' );
-function contact_form_display() {
+function contact_form_display( $atts = array() ) {
+	// parse shortcode attributes
+	$args = shortcode_atts(
+		array(
+			'show_url' => 'true',
+		),
+		$atts,
+		'contact_form'
+	);
+
+	$show_url = ( $args['show_url'] === 'true' );
+
 	// only show form to logged-in users
 	$user = wp_get_current_user();
 	if ( ! $user->exists() ) {
     	return '<p>' . esc_html__( 'You must be logged in to contact us.', 'contact-form' ) . '</p>';
 	}
-
+	
 	// get current user data
 	$user_id = $user->ID;
 	$first_name = get_user_meta( $user_id, 'first_name', true );
@@ -98,10 +109,12 @@ function contact_form_display() {
 			<label for="contact-phone"><?php esc_html_e( 'Phone', 'contact-form' ); ?></label>
 			<input type="text" id="contact-phone" readonly value="<?php echo esc_attr( $phone_value ); ?>" style="background-color: #f5f5f5;">
 		</p>
+		<?php if ( $show_url ) : ?>
 		<p>
 			<label for="contact-url"><?php esc_html_e( 'URL', 'contact-form' ); ?></label>
 			<input type="url" id="contact-url" name="contact_url">
 		</p>
+		<?php endif; ?>
         <?php if ( ! empty( $orders ) || ! empty( $subscriptions ) ) : ?>
                 <p>
                     <label for="contact-reference"><?php esc_html_e( 'Order or Subscription', 'contact-form' ); ?></label>
@@ -234,7 +247,9 @@ function contact_form_submit() {
 	$email_body  = "Name: {$name_value}\n";
 	$email_body .= "Email: {$email}\n";
 	$email_body .= "Phone: {$phone_value}\n";
-	$email_body .= "URL: {$url}\n";
+	if ( ! empty( $url ) ) {
+		$email_body .= "URL: {$url}\n";
+	}
 	$email_body .= "Reference: {$reference}\n";
 	$email_body .= "Subject: {$subject}\n";
 	$email_body .= "Message: {$message}\n";
