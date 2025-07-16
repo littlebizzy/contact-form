@@ -3,7 +3,7 @@
 Plugin Name: Contact Form
 Plugin URI: https://www.littlebizzy.com/plugins/contact-form
 Description: Intuitive WordPress contact form
-Version: 1.0.3
+Version: 1.0.4
 Author: LittleBizzy
 Author URI: https://www.littlebizzy.com
 Requires PHP: 7.0
@@ -233,10 +233,10 @@ function contact_form_submit() {
 	$phone_value = ! empty( $billing_phone ) ? $billing_phone : __( 'Not Available', 'contact-form' );
 
 	// sanitize user inputs
-	$subject = sanitize_text_field( $_POST['contact_subject'] ?? '' );
-	$url = esc_url_raw( $_POST['contact_url'] ?? '' );
-	$message = sanitize_textarea_field( $_POST['contact_message'] ?? '' );
-	$reference = sanitize_text_field( $_POST['contact_reference'] ?? '' );
+	$subject = sanitize_text_field( wp_unslash( $_POST['contact_subject'] ?? '' ) );
+	$url = esc_url_raw( wp_unslash( $_POST['contact_url'] ?? '' ) );
+	$message = sanitize_textarea_field( wp_unslash( $_POST['contact_message'] ?? '' ) );
+	$reference = sanitize_text_field( wp_unslash( $_POST['contact_reference'] ?? '' ) );
 
 	// check required fields
 	if ( empty( $subject ) || empty( $message ) ) {
