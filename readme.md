@@ -4,6 +4,9 @@ Intuitive WordPress contact form
 
 ## Changelog
 
+### 1.0.4
+- fixed slashes in input fields using `wp_unslash()` before sanitizing
+
 ### 1.0.3
 - added support for `[contact_form show_url="false"]` to optionally hide the URL field
 - email body skips "URL" line if field is empty or hidden
