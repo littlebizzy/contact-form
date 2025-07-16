@@ -3,7 +3,7 @@
 Plugin Name: Contact Form
 Plugin URI: https://www.littlebizzy.com/plugins/contact-form
 Description: Intuitive WordPress contact form
-Version: 1.0.4
+Version: 1.0.5
 Author: LittleBizzy
 Author URI: https://www.littlebizzy.com
 Requires PHP: 7.0
@@ -255,11 +255,13 @@ function contact_form_submit() {
 	$email_body .= "Message: {$message}\n";
 
 	// send email to admin
-    $sent = wp_mail(
-        get_option( 'admin_email' ),
-        sprintf( __( 'Contact Form: %s', 'contact-form' ), $subject ),
-        $email_body
-    );
+	$headers = array( 'Reply-To: ' . $email );
+	$sent = wp_mail(
+		get_option( 'admin_email' ),
+		sprintf( __( 'Contact Form: %s', 'contact-form' ), $subject ),
+		$email_body,
+		$headers
+	);
 
 	// return response
 	if ( $sent ) {
