@@ -4,6 +4,9 @@ Intuitive WordPress contact form
 
 ## Changelog
 
+### 1.0.5
+- added `Reply-To` email header using the logged-in user's address
+
 ### 1.0.4
 - fixed slashes in input fields using `wp_unslash()` before sanitizing
 
