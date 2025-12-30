@@ -3,11 +3,11 @@
 Plugin Name: Contact Form
 Plugin URI: https://www.littlebizzy.com/plugins/contact-form
 Description: Intuitive WordPress contact form
-Version: 1.0.5
+Version: 1.1.0
 Author: LittleBizzy
 Author URI: https://www.littlebizzy.com
 Requires PHP: 7.0
-Tested up to: 6.7
+Tested up to: 6.9
 License: GPLv3
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
 Update URI: false
@@ -41,12 +41,31 @@ function contact_form_display( $atts = array() ) {
 
 	$show_url = ( $args['show_url'] === 'true' );
 
+	// enqueue js when shortcode renders
+	wp_enqueue_script(
+		'contact-form',
+		plugin_dir_url( __FILE__ ) . 'contact-form.js',
+		array( 'jquery' ),
+		filemtime( plugin_dir_path( __FILE__ ) . 'contact-form.js' ),
+		true
+	);
+
+	// pass ajax url and nonce to js
+	wp_localize_script(
+		'contact-form',
+		'contactForm',
+		array(
+			'ajax_url' => admin_url( 'admin-ajax.php' ),
+			'nonce' => wp_create_nonce( 'contact_form_nonce' ),
+		)
+	);
+
 	// only show form to logged-in users
 	$user = wp_get_current_user();
 	if ( ! $user->exists() ) {
-    	return '<p>' . esc_html__( 'You must be logged in to contact us.', 'contact-form' ) . '</p>';
+		return '<p>' . esc_html__( 'You must be logged in to contact us.', 'contact-form' ) . '</p>';
 	}
-	
+
 	// get current user data
 	$user_id = $user->ID;
 	$first_name = get_user_meta( $user_id, 'first_name', true );
@@ -115,48 +134,48 @@ function contact_form_display( $atts = array() ) {
 			<input type="url" id="contact-url" name="contact_url">
 		</p>
 		<?php endif; ?>
-        <?php if ( ! empty( $orders ) || ! empty( $subscriptions ) ) : ?>
-                <p>
-                    <label for="contact-reference"><?php esc_html_e( 'Order or Subscription', 'contact-form' ); ?></label>
-                    <select id="contact-reference" name="contact_reference">
-                        <option value=""><?php esc_html_e( 'Select Order or Subscription', 'contact-form' ); ?></option>
-                        <?php foreach ( $orders as $order ) : ?>
-                            <?php
-                            $product_names = array();
-                            foreach ( $order->get_items() as $item ) {
-                                $product_names[] = $item->get_name();
-                            }
-                            $product_list = implode( ', ', $product_names );
-                            ?>
-                            <option value="order_<?php echo esc_attr( $order->get_id() ); ?>">
-                                <?php printf(
-                                    esc_html__( 'Order #%1$s – %2$s – %3$s', 'contact-form' ),
-                                    esc_html( $order->get_id() ),
-                                    esc_html( $order->get_date_created()->date_i18n( get_option( 'date_format' ) ) ),
-                                    esc_html( $product_list )
-                                ); ?>
-                            </option>
-                        <?php endforeach; ?>
-                        <?php foreach ( $subscriptions as $subscription ) : ?>
-                            <?php
-                            $product_names = array();
-                            foreach ( $subscription->get_items() as $item ) {
-                                $product_names[] = $item->get_name();
-                            }
-                            $product_list = implode( ', ', $product_names );
-                            ?>
-                            <option value="subscription_<?php echo esc_attr( $subscription->get_id() ); ?>">
-                                <?php printf(
-                                    esc_html__( 'Subscription #%1$s – %2$s – %3$s', 'contact-form' ),
-                                    esc_html( $subscription->get_id() ),
-                                    esc_html( $subscription->get_date_created()->date_i18n( get_option( 'date_format' ) ) ),
-                                    esc_html( $product_list )
-                                ); ?>
-                            </option>
-                        <?php endforeach; ?>
-                    </select>
-                </p>
-        <?php endif; ?>
+		<?php if ( ! empty( $orders ) || ! empty( $subscriptions ) ) : ?>
+		<p>
+			<label for="contact-reference"><?php esc_html_e( 'Order or Subscription', 'contact-form' ); ?></label>
+			<select id="contact-reference" name="contact_reference">
+				<option value=""><?php esc_html_e( 'Select Order or Subscription', 'contact-form' ); ?></option>
+				<?php foreach ( $orders as $order ) : ?>
+					<?php
+					$product_names = array();
+					foreach ( $order->get_items() as $item ) {
+						$product_names[] = $item->get_name();
+					}
+					$product_list = implode( ', ', $product_names );
+					?>
+					<option value="order_<?php echo esc_attr( $order->get_id() ); ?>">
+						<?php printf(
+							esc_html__( 'Order #%1$s – %2$s – %3$s', 'contact-form' ),
+							esc_html( $order->get_id() ),
+							esc_html( $order->get_date_created()->date_i18n( get_option( 'date_format' ) ) ),
+							esc_html( $product_list )
+						); ?>
+					</option>
+				<?php endforeach; ?>
+				<?php foreach ( $subscriptions as $subscription ) : ?>
+					<?php
+					$product_names = array();
+					foreach ( $subscription->get_items() as $item ) {
+						$product_names[] = $item->get_name();
+					}
+					$product_list = implode( ', ', $product_names );
+					?>
+					<option value="subscription_<?php echo esc_attr( $subscription->get_id() ); ?>">
+						<?php printf(
+							esc_html__( 'Subscription #%1$s – %2$s – %3$s', 'contact-form' ),
+							esc_html( $subscription->get_id() ),
+							esc_html( $subscription->get_date_created()->date_i18n( get_option( 'date_format' ) ) ),
+							esc_html( $product_list )
+						); ?>
+					</option>
+				<?php endforeach; ?>
+			</select>
+		</p>
+		<?php endif; ?>
 		<p>
 			<label for="contact-subject"><?php esc_html_e( 'Subject', 'contact-form' ); ?></label>
 			<input type="text" id="contact-subject" name="contact_subject" required>
@@ -172,40 +191,6 @@ function contact_form_display( $atts = array() ) {
 	</form>
 	<?php
 	return ob_get_clean();
-}
-
-// enqueue js only if shortcode exists and user is logged in
-add_action( 'wp_enqueue_scripts', 'contact_form_enqueue_js' );
-function contact_form_enqueue_js() {
-	// skip if user not logged in
-	if ( ! is_user_logged_in() ) {
-		return;
-	}
-
-    // get current queried post to reliably detect shortcode presence
-    $post = get_queried_object();
-    if ( ! $post instanceof WP_Post || ! has_shortcode( $post->post_content ?? '', 'contact_form' ) ) {
-        return;
-    }
-
-	// enqueue contact form script
-	wp_enqueue_script(
-		'contact-form',
-		plugin_dir_url( __FILE__ ) . 'contact-form.js',
-		array( 'jquery' ),
-		filemtime( plugin_dir_path( __FILE__ ) . 'contact-form.js' ),
-		true
-	);
-
-	// pass ajax url and nonce to js
-	wp_localize_script(
-		'contact-form',
-		'contactForm',
-		array(
-			'ajax_url' => admin_url( 'admin-ajax.php' ),
-			'nonce' => wp_create_nonce( 'contact_form_nonce' ),
-		)
-	);
 }
 
 // handle ajax submission for contact form
@@ -227,7 +212,7 @@ function contact_form_submit() {
 	$full_name = trim( $first_name . ' ' . $last_name );
 	$name_value = ! empty( $full_name ) ? $full_name : $user->display_name;
 	$email = $user->user_email;
-	
+
 	// get billing phone if woocommerce active
 	$billing_phone = class_exists( 'WooCommerce' ) ? get_user_meta( $user_id, 'billing_phone', true ) : '';
 	$phone_value = ! empty( $billing_phone ) ? $billing_phone : __( 'Not Available', 'contact-form' );
