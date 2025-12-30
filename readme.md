@@ -4,6 +4,13 @@ Intuitive WordPress contact form
 
 ## Changelog
 
+### 1.1.0
+- changed how frontend scripts are loaded so the contact form JavaScript is enqueued when the shortcode actually renders, instead of trying to detect it from page content
+- ensures the contact form works reliably when used in pages, custom templates, blocks, widgets, or via `do_shortcode()`
+- removes brittle shortcode detection logic based on parsing post content
+- no changes to access control; the contact form is still restricted to logged-in users only
+- bumped `Tested up to:` to 6.9
+
 ### 1.0.5
 - added `Reply-To` email header using the logged-in user's address
 
