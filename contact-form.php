@@ -3,11 +3,11 @@
 Plugin Name: Contact Form
 Plugin URI: https://www.littlebizzy.com/plugins/contact-form
 Description: Intuitive WordPress contact form
-Version: 1.1.0
-Author: LittleBizzy
-Author URI: https://www.littlebizzy.com
+Version: 1.1.1
 Requires PHP: 7.0
 Tested up to: 6.9
+Author: LittleBizzy
+Author URI: https://www.littlebizzy.com
 License: GPLv3
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
 Update URI: false
