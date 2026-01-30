@@ -4,6 +4,9 @@ Intuitive WordPress contact form
 
 ## Changelog
 
+### 1.1.1
+- tweaked order of plugin headers
+
 ### 1.1.0
 - changed how frontend scripts are loaded so the contact form JavaScript is enqueued when the shortcode actually renders, instead of trying to detect it from page content
 - ensures the contact form works reliably when used in pages, custom templates, blocks, widgets, or via `do_shortcode()`
