@@ -3,7 +3,7 @@
 Plugin Name: Contact Form
 Plugin URI: https://www.littlebizzy.com/plugins/contact-form
 Description: Intuitive WordPress contact form
-Version: 1.1.1
+Version: 1.2.1
 Requires PHP: 7.0
 Tested up to: 6.9
 Author: LittleBizzy
@@ -202,7 +202,7 @@ function contact_form_submit() {
 	// ensure user is logged in
 	$user = wp_get_current_user();
 	if ( ! $user->exists() ) {
-		wp_send_json_error( __( 'Not logged in', 'contact-form' ) );
+		wp_send_json_error( apply_filters( 'contact_form_error_not_logged_in', __( 'Not logged in', 'contact-form' ) ) );
 	}
 
 	// collect user data
@@ -225,7 +225,7 @@ function contact_form_submit() {
 
 	// check required fields
 	if ( empty( $subject ) || empty( $message ) ) {
-		wp_send_json_error( __( 'Subject and message are required', 'contact-form' ) );
+		wp_send_json_error( apply_filters( 'contact_form_error_validation', __( 'Subject and message are required', 'contact-form' ) ) );
 	}
 
 	// build email body
@@ -250,10 +250,19 @@ function contact_form_submit() {
 
 	// return response
 	if ( $sent ) {
-		wp_send_json_success( __( 'Message sent successfully.', 'contact-form' ) );
+
+		do_action( 'contact_form_sent', array(
+			'user_id'   => $user_id,
+			'subject'   => $subject,
+			'message'   => $message,
+			'reference' => $reference,
+			'url'       => $url,
+		) );
+
+		wp_send_json_success( apply_filters( 'contact_form_success_message', __( 'Message sent successfully.', 'contact-form' ) ) );
 	}
 
-	wp_send_json_error( __( 'Failed to send message.', 'contact-form' ) );
+	wp_send_json_error( apply_filters( 'contact_form_error_send_failed', __( 'Failed to send message.', 'contact-form' ) ) );
 }
 
 // Ref: ChatGPT
