@@ -252,11 +252,13 @@ function contact_form_submit() {
 	if ( $sent ) {
 
 		do_action( 'contact_form_sent', array(
-			'user_id'   => $user_id,
-			'subject'   => $subject,
-			'message'   => $message,
+			'name' => $name_value,
+			'email' => $email,
+			'phone' => $phone_value,
+			'subject' => $subject,
+			'message' => $message,
 			'reference' => $reference,
-			'url'       => $url,
+			'url' => $url,
 		) );
 
 		wp_send_json_success( apply_filters( 'contact_form_success_message', __( 'Message sent successfully.', 'contact-form' ) ) );
