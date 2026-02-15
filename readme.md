@@ -4,6 +4,10 @@ Intuitive WordPress contact form
 
 ## Changelog
 
+### 1.2.1
+- added `do_action` hook after successful submission
+- added granular filters for success and error messages
+
 ### 1.1.1
 - tweaked order of plugin headers
 
