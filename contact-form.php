@@ -246,7 +246,13 @@ function contact_form_submit() {
 
 	// build domain-aligned noreply address
 	$site_domain = wp_parse_url( home_url(), PHP_URL_HOST );
-	$from_email = $site_domain ? 'noreply@' . $site_domain : get_option( 'admin_email' );
+
+	// fallback to admin email if domain parsing fails
+	if ( ! empty( $site_domain ) ) {
+		$from_email = 'noreply@' . $site_domain;
+	} else {
+		$from_email = get_option( 'admin_email' );
+	}
 
 	// use rfc-compliant line endings for email body
 	$eol = "\r\n";
