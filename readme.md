@@ -4,6 +4,12 @@ Intuitive WordPress contact form
 
 ## Changelog
 
+### 1.2.3
+- validated reference field against expected order/subscription format
+- moved required field checks immediately after input sanitization
+- added fallback to admin email if site domain cannot generate valid noreply address
+- improved internal validation flow and code ordering
+
 ### 1.2.2
 - added strict server-side validation for user email using `sanitize_email()` and `is_email()`
 - stripped CR/LF characters from subject and reply-to fields to prevent header injection
