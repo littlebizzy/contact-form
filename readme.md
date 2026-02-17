@@ -4,6 +4,14 @@ Intuitive WordPress contact form
 
 ## Changelog
 
+### 1.2.2
+- added strict server-side validation for user email using `sanitize_email()` and `is_email()`
+- stripped CR/LF characters from subject and reply-to fields to prevent header injection
+- switched `From` address to domain-aligned noreply@site-domain for improved SPF/DMARC compatibility
+- preserved user email in `Reply-To` header
+- enforced UTF-8 content-type header for outgoing mail
+- standardized RFC-compliant CRLF line endings in email body for SMTP compliance
+
 ### 1.2.1
 - added `do_action` hook after successful submission
 - added granular filters for success and error messages
