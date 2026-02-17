@@ -3,7 +3,7 @@
 Plugin Name: Contact Form
 Plugin URI: https://www.littlebizzy.com/plugins/contact-form
 Description: Intuitive WordPress contact form
-Version: 1.2.2
+Version: 1.2.3
 Requires PHP: 7.0
 Tested up to: 6.9
 Author: LittleBizzy
@@ -30,6 +30,7 @@ add_filter( 'gu_override_dot_org', function( $overrides ) {
 // display contact form shortcode
 add_shortcode( 'contact_form', 'contact_form_display' );
 function contact_form_display( $atts = array() ) {
+
 	// parse shortcode attributes
 	$args = shortcode_atts(
 		array(
@@ -196,6 +197,7 @@ function contact_form_display( $atts = array() ) {
 // handle ajax submission for contact form
 add_action( 'wp_ajax_contact_form_submit', 'contact_form_submit' );
 function contact_form_submit() {
+
 	// verify nonce
 	check_ajax_referer( 'contact_form_nonce', 'nonce' );
 
@@ -229,17 +231,22 @@ function contact_form_submit() {
 	$message = sanitize_textarea_field( wp_unslash( $_POST['contact_message'] ?? '' ) );
 	$reference = sanitize_text_field( wp_unslash( $_POST['contact_reference'] ?? '' ) );
 
-	// prevent header injection
-	$subject = str_replace( array( "\r", "\n" ), '', $subject );
-
-	// build domain-aligned noreply address
-	$site_domain = wp_parse_url( home_url(), PHP_URL_HOST );
-	$from_email = 'noreply@' . $site_domain;
+	// validate reference format
+	if ( ! empty( $reference ) && ! preg_match( '/^(order|subscription)_[0-9]+$/', $reference ) ) {
+		$reference = '';
+	}
 
 	// check required fields
 	if ( empty( $subject ) || empty( $message ) ) {
 		wp_send_json_error( apply_filters( 'contact_form_error_validation', __( 'Subject and message are required', 'contact-form' ) ) );
 	}
+
+	// prevent header injection
+	$subject = str_replace( array( "\r", "\n" ), '', $subject );
+
+	// build domain-aligned noreply address
+	$site_domain = wp_parse_url( home_url(), PHP_URL_HOST );
+	$from_email = $site_domain ? 'noreply@' . $site_domain : get_option( 'admin_email' );
 
 	// use rfc-compliant line endings for email body
 	$eol = "\r\n";
