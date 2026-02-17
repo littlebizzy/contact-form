@@ -3,7 +3,7 @@
 Plugin Name: Contact Form
 Plugin URI: https://www.littlebizzy.com/plugins/contact-form
 Description: Intuitive WordPress contact form
-Version: 1.2.1
+Version: 1.2.2
 Requires PHP: 7.0
 Tested up to: 6.9
 Author: LittleBizzy
@@ -213,6 +213,12 @@ function contact_form_submit() {
 	$name_value = ! empty( $full_name ) ? $full_name : $user->display_name;
 	$email = $user->user_email;
 
+	$email = sanitize_email( $email );
+	$email = str_replace( array( "\r", "\n" ), '', $email );
+	if ( ! is_email( $email ) ) {
+		wp_send_json_error( apply_filters( 'contact_form_error_validation', __( 'Invalid email address', 'contact-form' ) ) );
+	}
+
 	// get billing phone if woocommerce active
 	$billing_phone = class_exists( 'WooCommerce' ) ? get_user_meta( $user_id, 'billing_phone', true ) : '';
 	$phone_value = ! empty( $billing_phone ) ? $billing_phone : __( 'Not Available', 'contact-form' );
@@ -223,24 +229,40 @@ function contact_form_submit() {
 	$message = sanitize_textarea_field( wp_unslash( $_POST['contact_message'] ?? '' ) );
 	$reference = sanitize_text_field( wp_unslash( $_POST['contact_reference'] ?? '' ) );
 
+	// prevent header injection
+	$subject = str_replace( array( "\r", "\n" ), '', $subject );
+
+	// build domain-aligned noreply address
+	$site_domain = wp_parse_url( home_url(), PHP_URL_HOST );
+	$from_email = 'noreply@' . $site_domain;
+
 	// check required fields
 	if ( empty( $subject ) || empty( $message ) ) {
 		wp_send_json_error( apply_filters( 'contact_form_error_validation', __( 'Subject and message are required', 'contact-form' ) ) );
 	}
 
-	// build email body
-	$email_body  = "Name: {$name_value}\n";
-	$email_body .= "Email: {$email}\n";
-	$email_body .= "Phone: {$phone_value}\n";
-	if ( ! empty( $url ) ) {
-		$email_body .= "URL: {$url}\n";
-	}
-	$email_body .= "Reference: {$reference}\n";
-	$email_body .= "Subject: {$subject}\n";
-	$email_body .= "Message: {$message}\n";
+	// use rfc-compliant line endings for email body
+	$eol = "\r\n";
 
-	// send email to admin
-	$headers = array( 'Reply-To: ' . $email );
+	// build email body
+	$email_body  = "Name: {$name_value}{$eol}";
+	$email_body .= "Email: {$email}{$eol}";
+	$email_body .= "Phone: {$phone_value}{$eol}";
+	if ( ! empty( $url ) ) {
+		$email_body .= "URL: {$url}{$eol}";
+	}
+	$email_body .= "Reference: {$reference}{$eol}";
+	$email_body .= "Subject: {$subject}{$eol}";
+	$email_body .= "Message: {$message}{$eol}";
+
+	// build email headers
+	$headers = array(
+		'From: ' . $name_value . ' via ' . get_bloginfo( 'name' ) . ' <' . $from_email . '>',
+		'Reply-To: ' . $email,
+		'Content-Type: text/plain; charset=UTF-8',
+	);
+
+	// send email to site admin
 	$sent = wp_mail(
 		get_option( 'admin_email' ),
 		sprintf( __( 'Contact Form: %s', 'contact-form' ), $subject ),
