@@ -43,6 +43,11 @@ function contact_form_display( $atts = array() ) {
 	// determine whether to show optional url field
 	$show_url = ( 'true' === $args['show_url'] );
 
+	// require user to be logged in before rendering form
+	if ( ! is_user_logged_in() ) {
+		return '<p>' . esc_html__( 'You must be logged in to contact us.', 'contact-form' ) . '</p>';
+	}
+
 	// enqueue js when shortcode is used
 	wp_enqueue_script(
 		'contact-form',
@@ -62,61 +67,76 @@ function contact_form_display( $atts = array() ) {
 		)
 	);
 
-	// require user to be logged in before rendering form
-	if ( ! is_user_logged_in() ) {
-		return '<p>' . esc_html__( 'You must be logged in to contact us.', 'contact-form' ) . '</p>';
-	}
-
-	// retrieve current user data
+	// retrieve current user
 	$user = wp_get_current_user();
 
-	// get current user data
-	$user_id = $user->ID;
+	// prepare user display name and email
+	$user_id = (int) $user->ID;
 	$first_name = get_user_meta( $user_id, 'first_name', true );
 	$last_name = get_user_meta( $user_id, 'last_name', true );
 	$full_name = trim( $first_name . ' ' . $last_name );
-	$name_value = ! empty( $full_name ) ? $full_name : $user->display_name;
-	$email = $user->user_email;
 
-	// get billing phone if woocommerce active
-	$billing_phone = class_exists( 'WooCommerce' ) ? get_user_meta( $user_id, 'billing_phone', true ) : '';
-	$phone_value = ! empty( $billing_phone ) ? $billing_phone : __( 'Not Available', 'contact-form' );
+	$name_value = $user->display_name;
+	if ( ! empty( $full_name ) ) {
+		$name_value = $full_name;
+	}
 
-	// fetch recent orders if woocommerce is active
-	$orders = class_exists( 'WooCommerce' ) ? wc_get_orders( array(
-		'customer_id' => $user_id,
-		'status' => array(
-			'wc-pending',
-			'wc-processing',
-			'wc-on-hold',
-			'wc-completed',
-			'wc-cancelled',
-			'wc-refunded',
-			'wc-failed',
-		),
-		'type' => 'shop_order',
-		'orderby' => 'date',
-		'order' => 'DESC',
-		'limit' => 15,
-		'return' => 'objects',
-	) ) : array();
+	$email = sanitize_email( $user->user_email );
+
+	// get billing phone from woocommerce profile
+	$billing_phone = '';
+	if ( class_exists( 'WooCommerce' ) ) {
+		$billing_phone = get_user_meta( $user_id, 'billing_phone', true );
+	}
+
+	$phone_value = __( 'Not Available', 'contact-form' );
+	if ( ! empty( $billing_phone ) ) {
+		$phone_value = $billing_phone;
+	}
+
+	// fetch recent woocommerce orders
+	$orders = array();
+
+	if ( class_exists( 'WooCommerce' ) ) {
+		$orders = wc_get_orders( array(
+			'customer_id' => $user_id,
+			'status' => array(
+				'wc-pending',
+				'wc-processing',
+				'wc-on-hold',
+				'wc-completed',
+				'wc-cancelled',
+				'wc-refunded',
+				'wc-failed',
+			),
+			'type' => 'shop_order',
+			'orderby' => 'date',
+			'order' => 'DESC',
+			'limit' => 15,
+			'return' => 'objects',
+		) );
+	}
 
 	// fetch recent subscriptions if subscriptions plugin is active
-	$subscriptions = ( class_exists( 'WC_Subscriptions' ) && function_exists( 'wcs_get_subscriptions_for_user' ) ) ? wcs_get_subscriptions_for_user( $user_id, array(
-		'post_status' => array(
-			'wc-pending',
-			'wc-active',
-			'wc-on-hold',
-			'wc-pending-cancel',
-			'wc-cancelled',
-			'wc-expired',
-			'wc-switched',
-		),
-		'orderby' => 'date',
-		'order' => 'DESC',
-		'limit' => 15,
-		'return' => 'subscriptions',
-	) ) : array();
+	$subscriptions = array();
+
+	if ( class_exists( 'WC_Subscriptions' ) && function_exists( 'wcs_get_subscriptions_for_user' ) ) {
+		$subscriptions = wcs_get_subscriptions_for_user( $user_id, array(
+			'post_status' => array(
+				'wc-pending',
+				'wc-active',
+				'wc-on-hold',
+				'wc-pending-cancel',
+				'wc-cancelled',
+				'wc-expired',
+				'wc-switched',
+			),
+			'orderby' => 'date',
+			'order' => 'DESC',
+			'limit' => 15,
+			'return' => 'subscriptions',
+		) );
+	}
 
 	ob_start(); ?>
 	<form id="contact-form" method="post">
