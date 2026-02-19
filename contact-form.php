@@ -81,7 +81,7 @@ function contact_form_display( $atts = array() ) {
 		$name_value = $full_name;
 	}
 
-	$email = sanitize_email( $user->user_email );
+	$email = $user->user_email;
 
 	// get billing phone from woocommerce profile
 	$billing_phone = '';
