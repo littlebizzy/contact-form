@@ -3,7 +3,7 @@
 Plugin Name: Contact Form
 Plugin URI: https://www.littlebizzy.com/plugins/contact-form
 Description: Intuitive WordPress contact form
-Version: 1.2.3
+Version: 1.2.4
 Requires PHP: 7.0
 Tested up to: 6.9
 Author: LittleBizzy
@@ -40,9 +40,10 @@ function contact_form_display( $atts = array() ) {
 		'contact_form'
 	);
 
-	$show_url = ( $args['show_url'] === 'true' );
+	// determine whether to show optional url field
+	$show_url = ( 'true' === $args['show_url'] );
 
-	// enqueue js when shortcode renders
+	// enqueue js when shortcode is used
 	wp_enqueue_script(
 		'contact-form',
 		plugin_dir_url( __FILE__ ) . 'contact-form.js',
@@ -61,11 +62,13 @@ function contact_form_display( $atts = array() ) {
 		)
 	);
 
-	// only show form to logged-in users
-	$user = wp_get_current_user();
-	if ( ! $user->exists() ) {
+	// require user to be logged in before rendering form
+	if ( ! is_user_logged_in() ) {
 		return '<p>' . esc_html__( 'You must be logged in to contact us.', 'contact-form' ) . '</p>';
 	}
+
+	// retrieve current user data
+	$user = wp_get_current_user();
 
 	// get current user data
 	$user_id = $user->ID;
