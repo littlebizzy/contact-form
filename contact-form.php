@@ -152,54 +152,86 @@ function contact_form_display( $atts = array() ) {
 			<label for="contact-phone"><?php esc_html_e( 'Phone', 'contact-form' ); ?></label>
 			<input type="text" id="contact-phone" readonly value="<?php echo esc_attr( $phone_value ); ?>" style="background-color: #f5f5f5;">
 		</p>
-		<?php if ( $show_url ) : ?>
+
+		<?php if ( true === $show_url ) : ?>
 		<p>
 			<label for="contact-url"><?php esc_html_e( 'URL', 'contact-form' ); ?></label>
 			<input type="url" id="contact-url" name="contact_url">
 		</p>
 		<?php endif; ?>
+
 		<?php if ( ! empty( $orders ) || ! empty( $subscriptions ) ) : ?>
 		<p>
 			<label for="contact-reference"><?php esc_html_e( 'Order or Subscription', 'contact-form' ); ?></label>
 			<select id="contact-reference" name="contact_reference">
 				<option value=""><?php esc_html_e( 'Select Order or Subscription', 'contact-form' ); ?></option>
+
 				<?php foreach ( $orders as $order ) : ?>
 					<?php
+					// collect product names for display
 					$product_names = array();
+
 					foreach ( $order->get_items() as $item ) {
 						$product_names[] = $item->get_name();
 					}
+
 					$product_list = implode( ', ', $product_names );
+
+					// safely retrieve formatted order date
+					$date = $order->get_date_created();
+					$order_date = '';
+
+					if ( $date ) {
+						$order_date = $date->date_i18n( get_option( 'date_format' ) );
+					}
 					?>
-					<option value="order_<?php echo esc_attr( $order->get_id() ); ?>">
-						<?php printf(
+					<option value="<?php echo esc_attr( 'order_' . $order->get_id() ); ?>">
+						<?php
+						printf(
 							esc_html__( 'Order #%1$s – %2$s – %3$s', 'contact-form' ),
 							esc_html( $order->get_id() ),
-							esc_html( $order->get_date_created()->date_i18n( get_option( 'date_format' ) ) ),
+							esc_html( $order_date ),
 							esc_html( $product_list )
-						); ?>
+						);
+						?>
 					</option>
 				<?php endforeach; ?>
+
 				<?php foreach ( $subscriptions as $subscription ) : ?>
 					<?php
+					// collect subscription product names
 					$product_names = array();
+
 					foreach ( $subscription->get_items() as $item ) {
 						$product_names[] = $item->get_name();
 					}
+
 					$product_list = implode( ', ', $product_names );
+
+					// safely retrieve formatted subscription date
+					$date = $subscription->get_date_created();
+					$subscription_date = '';
+
+					if ( $date ) {
+						$subscription_date = $date->date_i18n( get_option( 'date_format' ) );
+					}
 					?>
-					<option value="subscription_<?php echo esc_attr( $subscription->get_id() ); ?>">
-						<?php printf(
+					<option value="<?php echo esc_attr( 'subscription_' . $subscription->get_id() ); ?>">
+						<?php
+						printf(
 							esc_html__( 'Subscription #%1$s – %2$s – %3$s', 'contact-form' ),
 							esc_html( $subscription->get_id() ),
-							esc_html( $subscription->get_date_created()->date_i18n( get_option( 'date_format' ) ) ),
+							esc_html( $subscription_date ),
 							esc_html( $product_list )
-						); ?>
+						);
+						?>
 					</option>
 				<?php endforeach; ?>
+
 			</select>
 		</p>
 		<?php endif; ?>
+
 		<p>
 			<label for="contact-subject"><?php esc_html_e( 'Subject', 'contact-form' ); ?></label>
 			<input type="text" id="contact-subject" name="contact_subject" required>
@@ -208,9 +240,14 @@ function contact_form_display( $atts = array() ) {
 			<label for="contact-message"><?php esc_html_e( 'Message', 'contact-form' ); ?></label>
 			<textarea id="contact-message" name="contact_message" rows="10" cols="40" required></textarea>
 		</p>
+
 		<input type="hidden" name="action" value="contact_form_submit">
 		<?php wp_nonce_field( 'contact_form_nonce', 'nonce' ); ?>
-		<p><input type="submit" value="<?php esc_attr_e( 'Send Message', 'contact-form' ); ?>"></p>
+
+		<p>
+			<input type="submit" value="<?php esc_attr_e( 'Send Message', 'contact-form' ); ?>">
+		</p>
+
 		<div id="contact-form-response"></div>
 	</form>
 	<?php
